@@ -48,12 +48,13 @@ A ticket is only checked off once the implementation works, follows the layering
 
 ## Repo Hygiene
 
-- [ ] **T4.1 — Root `.gitignore`** covering Python + Node artifacts.
+- [x] **T4.1 — Root `.gitignore`** covering Python + Node artifacts.
 
-- [ ] **T4.2 — `.env.example`** documenting required backend config vars.
+- [x] **T4.2 — `.env.example`** documenting required backend config vars.
+  Satisfied early: `backend/.env.example` (T1.3) and `frontend/.env.example` (T2.3) both already exist and document their respective config vars.
 
-- [ ] **T4.3 — First commit**
-  Scaffold committed once T1–T3 are done and verified working end-to-end.
+- [x] **T4.3 — First commit**
+  Satisfied early: the scaffold's first commit landed right after T1.2, ahead of the original T1–T3 plan (noted at the time in `PROJECT_CONTEXT.md`).
 
 ---
 

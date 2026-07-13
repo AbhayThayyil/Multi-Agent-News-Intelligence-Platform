@@ -208,3 +208,17 @@ def health(settings: Settings = Depends(get_settings)):
 **Practical note:** verified using a temporary, uncommitted `docker-compose.override.yml` with alternate ports (`8030`/`5193`), since the standard `8000`/`5173` are occupied on this host by an unrelated project. The committed file uses the standard ports — running it while those other processes are up will hit the same "address already in use" error seen earlier.
 
 **Node/Express equivalent:** No translation needed — Compose files are language-agnostic. The `node_modules` anonymous-volume trick shown here is a very common pattern in any dockerized Node dev setup, for the identical reason.
+
+---
+
+## Sprint 1 — Repo Hygiene
+
+### T4.1 — Root .gitignore
+
+**Date:** 2026-07-13
+
+**What was done:** Most substance was already pulled forward earlier (`.env` rules in T1.3, Python cache rules mid-Sprint). What was actually missing at the root: OS junk files (`.DS_Store`, `Thumbs.db`), editor folders (`.vscode/`, `.idea/`), and defensive Node coverage (`node_modules/`, `dist/`) in case anything outside `frontend/` ever needs it — `frontend/.gitignore` already scopes Node artifacts correctly on its own.
+
+**Decision — what was deliberately left out:** cache directories for tools not yet introduced (`.pytest_cache/`, `.ruff_cache/`, `.mypy_cache/`) were skipped, per the project's "add only when a real requirement exists" principle — they'll get added in whichever ticket actually introduces those tools.
+
+**Verification:** created test `.DS_Store` files at root and inside `backend/`, confirmed `git check-ignore -v` matched both against the new root rule, then removed the test files.
