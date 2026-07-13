@@ -61,3 +61,25 @@ def health(settings: Settings = Depends(get_settings)):
 **Why not just `os.getenv()` everywhere:** without `pydantic-settings`, you'd also need `load_dotenv()` (from `python-dotenv`) explicitly called before anything reads `.env` — `os.getenv()` alone only sees real environment variables, never a `.env` file on its own. You'd also have to hand-parse `CORS_ORIGINS` with `json.loads()` in every file that needs it, with no shared validation — a malformed value would crash wherever it's first read, instead of failing clearly at startup. `pydantic-settings` centralizes both the `.env` loading and the parsing/validation into one object everyone shares.
 
 **Node/Express equivalent:** the raw `os.getenv()` version above is the same shape as `process.env.CORS_ORIGINS` + manual `JSON.parse()` + `require('dotenv').config()` in Express — `settings.py` plays the role of a shared, validated `config.js`/`config.ts` that every route imports instead of reading `process.env` directly.
+
+### T1.4 — Health endpoint
+
+**Date:** 2026-07-13
+
+**What was done:**
+- `app/schemas/health.py` — `HealthResponse` Pydantic model (`status`, `environment`).
+- `app/api/health.py` — `APIRouter(prefix="/api")` with `GET /health`, using `Depends(get_settings)` to include the current `app_env` in the response.
+- `app/main.py` — the actual FastAPI app instance (`app = FastAPI(...)`), mounting the health router. First real entrypoint the project has.
+- Added `fastapi` and `uvicorn[standard]` as dependencies.
+
+**Why:**
+- Response goes through a Pydantic model (`HealthResponse`) rather than a raw dict, so FastAPI validates the shape and auto-generates OpenAPI docs from it — matches the project-wide rule that Pydantic defines all request/response contracts.
+- The route lives in its own `APIRouter` file rather than directly in `main.py`, so `app/api` scales cleanly as more endpoints (planner, retrieval, etc.) are added later — each gets its own file/router, all mounted onto one `app`.
+- Response includes `environment` (beyond the ticket's original minimal `{"status": "ok"}`) specifically to exercise T1.3's config layer with something real and testable, rather than leaving it unused until a later ticket.
+
+**Problem it solved:**
+- Gives the project its first actual running server and a concrete way to verify frontend↔backend connectivity once the frontend exists (T2.3) — before this, there was no entrypoint at all.
+
+**Gotcha encountered:** local verification on port 8000 initially failed silently — `curl` returned `{"status":"ok"}` (no `environment` field), which looked like a bug in the new code. The real cause: an unrelated project's `uvicorn` server (`akamai-cdn-billing-backend`) was already bound to port 8000, and `curl` was hitting *that* server, not this one — the new server had actually failed to start (`address already in use`). Always check the server's own startup log, not just the HTTP response, when behavior doesn't match the code. Verified correctly afterward on port 8010.
+
+**Node/Express equivalent:** `APIRouter` ≈ `express.Router()` mounted via `app.use('/api', router)`; `app/main.py` ≈ Express's `server.js`/`app.js` — the one file that creates the app and wires every router together. The Pydantic response validation doesn't have a built-in Express equivalent — closest comparison is manually validating a response with `zod` before sending it.
