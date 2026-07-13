@@ -39,7 +39,7 @@ A ticket is only checked off once the implementation works, follows the layering
 
 ## Docker
 
-- [ ] **T3.1 — Backend Dockerfile** (using `uv`).
+- [x] **T3.1 — Backend Dockerfile** (using `uv`).
 
 - [ ] **T3.2 — Frontend Dockerfile** (dev mode, Vite).
 
