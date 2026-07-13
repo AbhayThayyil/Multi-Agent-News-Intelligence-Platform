@@ -1,9 +1,23 @@
-# Environment variables (expanded further in T4.1)
+# Environment variables
 .env
 .env.*
 !.env.example
 
-# Python bytecode cache (pulled forward from T4.1)
+# Python
 __pycache__/
 *.pyc
 .venv/
+
+# Node (defense-in-depth; frontend/.gitignore already scopes this to frontend/)
+node_modules/
+dist/
+npm-debug.log*
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Editors/IDEs
+.vscode/*
+!.vscode/extensions.json
+.idea/
