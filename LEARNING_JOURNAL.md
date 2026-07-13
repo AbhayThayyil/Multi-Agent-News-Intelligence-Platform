@@ -153,3 +153,26 @@ def health(settings: Settings = Depends(get_settings)):
 **Verification:** ran both servers, opened the actual page in a browser (not just `curl`) — rendered `"Backend status: ok (development)"`, confirmed via screenshot and network tab (`GET /api/health` → `200`).
 
 **Node/Express equivalent:** `useEffect` calling `fetch()` on mount ≈ any client-side fetch-on-load pattern in a React frontend served by an Express backend — same idea regardless of framework. `import.meta.env` has no Express equivalent since Express is server-only and reads `process.env` directly at runtime; the build-time/browser split is specific to frontend bundlers like Vite.
+
+---
+
+## Sprint 1 — Docker
+
+### T3.1 — Backend Dockerfile
+
+**Date:** 2026-07-13
+
+**What was done:** `backend/Dockerfile` (base image `ghcr.io/astral-sh/uv:python3.12-bookworm-slim`, dependencies installed before app code copied, `uv run uvicorn ... --reload`) and `backend/.dockerignore` (excludes `.venv`, `__pycache__`, `.env`, `.git` from the build context).
+
+**Why:**
+- Dependencies (`pyproject.toml`/`uv.lock`) are copied and `uv sync` run *before* `COPY app ./app`, exploiting Docker's layer caching — if only app code changes, Docker reuses the cached dependency-install layer instead of reinstalling on every rebuild.
+- `--host 0.0.0.0` (not the uvicorn default `127.0.0.1`) is required for the container's port mapping to actually reach the app from outside — binding to `127.0.0.1` inside a container makes it unreachable even with `-p` port mapping.
+- `--reload` matches Sprint 1's framing as a dev environment; it only sees file changes inside the container's own filesystem, so it needs a volume mount (coming in T3.3) to be useful for local development.
+
+**Problem it solved:** The backend can now run identically anywhere Docker is available, without Python/`uv`/dependencies installed on the host at all.
+
+**Verification:** built the image (`docker build`), ran it with port mapping (`-p 8020:8000`), and confirmed `GET /api/health` returned the expected JSON through the container — not just that the build succeeded.
+
+**Node/Express equivalent:** Structurally identical to a Node Dockerfile — `COPY package.json package-lock.json ./` + `RUN npm ci` *before* `COPY . .`, for the exact same layer-caching reason. `.dockerignore` excluding `.venv` here ≈ excluding `node_modules` there — both are large, platform-specific, and get reinstalled inside the container regardless.
+
+**Concept worth remembering — how this differs from "running locally":** every prior verification (T1.4, T1.5, T2.3) ran `uv run uvicorn ...` directly on the host Mac, using its own Python/`.venv`/OS — if a teammate's machine differs (Python patch version, OS, missing system library), behavior can differ ("works on my machine"). `docker build` instead constructs a completely separate, isolated Linux filesystem from scratch (starting from the `ghcr.io/astral-sh/uv:...` base image, not from anything on the Mac), copies in only what the Dockerfile specifies, and installs dependencies inside *that* filesystem. The result — an **image** — is a frozen template; `docker run` starts an actual running instance of it (a **container**), using the Python/dependencies that live inside the container, not the host's. `-p 8020:8000` is a port-mapping tunnel — the container's network is walled off by default, and this forwards traffic from a host port into the container's internal port. Payoff: the same image runs identically on any machine with Docker installed, no local Python/`uv`/dependency setup required at all. Not Python-specific — the same pattern applies to any backend language.
