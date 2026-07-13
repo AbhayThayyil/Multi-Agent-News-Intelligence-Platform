@@ -24,7 +24,7 @@ A ticket is only checked off once the implementation works, follows the layering
 - [x] **T1.4 — Health endpoint**
   `GET /api/health` in `app/api`, returns a Pydantic-typed response (`{"status": "ok", "environment": ...}`). Pure API layer, zero business logic.
 
-- [ ] **T1.5 — CORS configuration**
+- [x] **T1.5 — CORS configuration**
   Allow the Vite dev server origin so the frontend can call the backend locally.
 
 ## Frontend

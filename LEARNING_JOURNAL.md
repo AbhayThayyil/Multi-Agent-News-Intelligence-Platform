@@ -83,3 +83,17 @@ def health(settings: Settings = Depends(get_settings)):
 **Gotcha encountered:** local verification on port 8000 initially failed silently — `curl` returned `{"status":"ok"}` (no `environment` field), which looked like a bug in the new code. The real cause: an unrelated project's `uvicorn` server (`akamai-cdn-billing-backend`) was already bound to port 8000, and `curl` was hitting *that* server, not this one — the new server had actually failed to start (`address already in use`). Always check the server's own startup log, not just the HTTP response, when behavior doesn't match the code. Verified correctly afterward on port 8010.
 
 **Node/Express equivalent:** `APIRouter` ≈ `express.Router()` mounted via `app.use('/api', router)`; `app/main.py` ≈ Express's `server.js`/`app.js` — the one file that creates the app and wires every router together. The Pydantic response validation doesn't have a built-in Express equivalent — closest comparison is manually validating a response with `zod` before sending it.
+
+### T1.5 — CORS configuration
+
+**Date:** 2026-07-13
+
+**What was done:** Registered FastAPI's `CORSMiddleware` in `app/main.py`, using `settings.cors_origins` (from T1.3) as the allowlist, with `allow_credentials=False` (no cookie/session auth exists yet — Sprint 1 is stateless).
+
+**Why:** Browsers block a page from reading a cross-origin response unless the server explicitly allows it via CORS headers. The frontend (`http://localhost:5173`) and backend (`http://localhost:8000`) are different origins, so without this, T2.3's frontend health-check call would fail *only in the browser* — a classic trap since `curl`/Postman never enforce CORS, only real browser JS does.
+
+**Problem it solved:** Without CORS configured, the backend works fine standalone but silently blocks the frontend once it exists.
+
+**Verification:** started the server and sent requests with different `Origin` headers — `http://localhost:5173` got back `access-control-allow-origin: http://localhost:5173` (browser would allow reading the response); `http://evil.com` got no such header (browser would block it), even though the server answered both with `200 OK` — CORS is enforced client-side, not by refusing the request.
+
+**Node/Express equivalent:** the `cors` npm package — `app.use(cors({ origin: allowedOrigins, credentials: false }))`. Same concept, same beginner trap (CORS errors only show up in the browser console, never in `curl`).
