@@ -1,6 +1,6 @@
 # Sprint 1 — Project Bootstrap
 
-**Status:** Design approved — implementation in progress.
+**Status:** Complete — all tickets checked off, Sprint Exit Criteria verified end-to-end (2026-07-13).
 
 Goal: build a production-ready project foundation. No business logic, no LangGraph, no persistence — pure scaffolding.
 
