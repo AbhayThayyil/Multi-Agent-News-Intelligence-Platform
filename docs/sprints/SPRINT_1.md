@@ -43,7 +43,7 @@ A ticket is only checked off once the implementation works, follows the layering
 
 - [x] **T3.2 — Frontend Dockerfile** (dev mode, Vite).
 
-- [ ] **T3.3 — `docker-compose.yml`**
+- [x] **T3.3 — `docker-compose.yml`**
   Wires both services together with one command to run the whole stack.
 
 ## Repo Hygiene
