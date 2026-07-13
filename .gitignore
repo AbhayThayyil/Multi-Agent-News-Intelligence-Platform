@@ -1,0 +1,4 @@
+# Environment variables (expanded further in T4.1)
+.env
+.env.*
+!.env.example

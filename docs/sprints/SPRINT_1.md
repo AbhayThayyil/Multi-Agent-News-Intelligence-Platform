@@ -18,7 +18,7 @@ A ticket is only checked off once the implementation works, follows the layering
 - [x] **T1.2 — Create backend folder structure**
   `app/{api,agents,tools,prompts,services,schemas,models,config}`, each with an empty `__init__.py`. Skeleton only, no logic.
 
-- [ ] **T1.3 — Config layer**
+- [x] **T1.3 — Config layer**
   `app/config` using `pydantic-settings`, reading from `.env` (e.g. `APP_ENV`, allowed CORS origins).
 
 - [ ] **T1.4 — Health endpoint**
