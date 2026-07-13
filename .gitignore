@@ -2,3 +2,8 @@
 .env
 .env.*
 !.env.example
+
+# Python bytecode cache (pulled forward from T4.1)
+__pycache__/
+*.pyc
+.venv/

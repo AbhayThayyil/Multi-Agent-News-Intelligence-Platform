@@ -29,7 +29,7 @@ A ticket is only checked off once the implementation works, follows the layering
 
 ## Frontend
 
-- [ ] **T2.1 — Initialize Vite + React + TypeScript project** in `frontend/`.
+- [x] **T2.1 — Initialize Vite + React + TypeScript project** in `frontend/`.
 
 - [ ] **T2.2 — Basic frontend folder structure**
   e.g. `src/components`, `src/api` — just enough to hold the health-check call cleanly.

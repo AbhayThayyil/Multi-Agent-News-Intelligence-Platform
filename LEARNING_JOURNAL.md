@@ -97,3 +97,29 @@ def health(settings: Settings = Depends(get_settings)):
 **Verification:** started the server and sent requests with different `Origin` headers — `http://localhost:5173` got back `access-control-allow-origin: http://localhost:5173` (browser would allow reading the response); `http://evil.com` got no such header (browser would block it), even though the server answered both with `200 OK` — CORS is enforced client-side, not by refusing the request.
 
 **Node/Express equivalent:** the `cors` npm package — `app.use(cors({ origin: allowedOrigins, credentials: false }))`. Same concept, same beginner trap (CORS errors only show up in the browser console, never in `curl`).
+
+---
+
+## Sprint 1 — Frontend
+
+### T2.1 — Initialize Vite + React + TypeScript
+
+**Date:** 2026-07-13
+
+**What was done:** Scaffolded `frontend/` with `npm create vite@latest . -- --template react-ts`. Installed and wired up `nvm` (present via Homebrew but never sourced in `~/.zshrc`), installed Node 22 LTS through it, and added `frontend/.nvmrc` pinning this project to Node 22 — same role as `backend/.python-version`, one file per ecosystem.
+
+**Why:** Vite + React + TypeScript was the already-agreed frontend stack. `nvm` was needed once Node itself became the blocker (below), so this project can use a modern Node version without changing the one global Node install other projects on this machine depend on.
+
+**Gotcha encountered (the real story):** The scaffolded Vite 8 defaults to **Rolldown**, a new Rust-based bundler, which needs a native platform binary (`@rolldown/binding-darwin-arm64`) as an optional dependency. On the machine's existing Node (`v20.15.1`, installed as a single global binary with no version manager), that binary silently failed to install — a known npm bug with optional dependencies, not a problem in our code. Node 20 was also already past its end-of-life support window, so patching around the symptom (e.g. pinning to an older Vite) would have left the project on an unmaintained runtime. Root-caused it to Node itself, then fixed it properly: installed `nvm`, installed Node 22 LTS through it (leaving the original `/usr/local/bin/node` untouched for other projects), and confirmed the native binding installed and `npm run dev` served successfully on the new version.
+
+**Problem it solved:** Frontend tooling now runs on a supported Node version, isolated per-project via `.nvmrc`, instead of silently depending on a shared, outdated global Node install.
+
+**Verification:** clean install (`rm -rf node_modules package-lock.json && npm install`) showed no engine warnings, `node_modules/@rolldown/binding-darwin-arm64` was present, and `npm run dev` served `200 OK` on a test port.
+
+**Node/Express comparison:** `.nvmrc` is itself a Node-ecosystem concept — no separate translation needed — but it plays the exact same role as `backend/.python-version`: one small file, read automatically by the version manager (`nvm` vs `uv`), so every contributor (and CI, later) runs the same runtime version without manual coordination.
+
+### Pulled forward: Python cache rules in `.gitignore` (originally T4.1)
+
+**Date:** 2026-07-13
+
+**What/why:** `__pycache__/` directories (holding `.pyc` — compiled Python bytecode, auto-regenerated on every run) started showing up as untracked in `git status`. Root `.gitignore` was deliberately left minimal after T1.3 (just `.env` rules), with full Python/Node coverage deferred to T4.1. Rather than let cache clutter accumulate for several more tickets, pulled forward just the Python rules (`__pycache__/`, `*.pyc`, `.venv/`) now — same reasoning as pulling forward the `.env` rule earlier. `.venv/` here is a harmless backstop; `uv` already self-ignores it via a nested `.gitignore`.
