@@ -123,3 +123,15 @@ def health(settings: Settings = Depends(get_settings)):
 **Date:** 2026-07-13
 
 **What/why:** `__pycache__/` directories (holding `.pyc` — compiled Python bytecode, auto-regenerated on every run) started showing up as untracked in `git status`. Root `.gitignore` was deliberately left minimal after T1.3 (just `.env` rules), with full Python/Node coverage deferred to T4.1. Rather than let cache clutter accumulate for several more tickets, pulled forward just the Python rules (`__pycache__/`, `*.pyc`, `.venv/`) now — same reasoning as pulling forward the `.env` rule earlier. `.venv/` here is a harmless backstop; `uv` already self-ignores it via a nested `.gitignore`.
+
+### T2.2 — Basic frontend folder structure
+
+**Date:** 2026-07-13
+
+**What was done:** Created `frontend/src/api/` and `frontend/src/components/`, each holding a `.gitkeep` placeholder (empty otherwise).
+
+**Why / the git quirk behind it:** Git only tracks files, never directories — an empty folder isn't something git can commit at all. That's different from the backend's T1.2, where `__init__.py` gave every empty layer folder real substance from day one. `.gitkeep` is purely a developer convention (not a git feature) — an empty file whose name signals "this folder is intentional," which incidentally makes the folder exist in git too.
+
+**Problem it solved:** Makes the frontend's folder decision (where API code vs. components live) visible and committable on its own, rather than being an invisible side effect of wherever T2.3's first file happens to land.
+
+**Node/Express equivalent:** Same convention shows up in Express projects too — a `routes/` or `controllers/` folder with a `.gitkeep` before the first route file exists, for the identical reason (npm/git don't track empty directories either).
