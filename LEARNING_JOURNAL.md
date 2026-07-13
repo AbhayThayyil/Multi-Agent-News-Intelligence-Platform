@@ -222,3 +222,19 @@ def health(settings: Settings = Depends(get_settings)):
 **Decision — what was deliberately left out:** cache directories for tools not yet introduced (`.pytest_cache/`, `.ruff_cache/`, `.mypy_cache/`) were skipped, per the project's "add only when a real requirement exists" principle — they'll get added in whichever ticket actually introduces those tools.
 
 **Verification:** created test `.DS_Store` files at root and inside `backend/`, confirmed `git check-ignore -v` matched both against the new root rule, then removed the test files.
+
+---
+
+## Sprint 1 — Closeout Retrospective
+
+**Date:** 2026-07-13
+
+**Gotcha from the final verification pass — Docker Compose merges `ports:` lists, it doesn't replace them.** Tried to verify the Sprint Exit Criteria using a `docker-compose.override.yml` with alternate ports (to avoid touching the host's other project occupying 8000/5173). Compose merges list-type fields like `ports:` by *concatenation*, not override — so both the base file's `8000:8000` and the override's alternate mapping ended up active simultaneously, briefly making our backend container reachable on port 8000 too (the same port the host's unrelated `akamai-cdn-billing-backend` project was using). No lasting harm — the other project's process was never killed, just temporarily shadowed at the network layer — but this is a real Compose behavior worth remembering: **to fully override a port mapping, edit the value directly (or use `${VAR:-default}` substitution), not an override file's `ports:` list.**
+
+**Second layer of that same lesson:** once ports were remapped correctly, the frontend still failed — its `VITE_API_BASE_URL` fallback default (`http://localhost:8000`, baked in during T2.3) didn't know about the remap, and separately, once that was fixed too, the backend's CORS allowlist (fixed default `http://localhost:5173`, from T1.5) rejected the remapped frontend's origin. Each fix surfaced the next mismatch — a good concrete illustration of how many independent pieces (compose ports, frontend's default API URL, backend's CORS allowlist) all have to agree, and how remapping one without the others just shifts the failure point rather than fixing anything. The actual committed configuration was correct throughout; every failure was self-inflicted by test-only port substitutions.
+
+**Final verification, done properly:** waited for the host's other project to free ports 8000/5173, ran `docker compose up` with the real committed config (no overrides at all), and confirmed in an actual browser that `http://localhost:5173` rendered "Backend status: ok (development)" — the genuine, unmodified proof of the Sprint Exit Criteria.
+
+**What Sprint 1 actually built:** a layered FastAPI backend (config → API → schemas) and a React+TypeScript frontend, each independently Dockerized, wired together via `docker-compose.yml` with working hot-reload in both directions. No business logic, LangGraph, or persistence — exactly as scoped, avoiding the over-engineering the project explicitly warns against.
+
+**Recurring theme across the whole sprint:** most real gotchas were environment/tooling issues, not application logic bugs — `uv`/Homebrew permission failures, Rolldown's native-binding failure on outdated Node, Alpine vs. slim libc differences, and this Compose port-merging behavior. The application code itself (settings, health endpoint, CORS, the React health-check page) worked essentially as designed once written. Worth remembering going into Sprint 2: budget time for environment surprises, not just feature logic.

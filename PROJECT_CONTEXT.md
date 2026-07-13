@@ -343,7 +343,7 @@ Business logic is intentionally postponed.
 
 Database (PostgreSQL) and Redis are deferred to a later sprint — not part of Sprint 1.
 
-**Status:** Design reviewed and approved. Implementation started.
+**Status:** Complete. All tickets (T1.1–T4.3) implemented and verified; Sprint Exit Criteria confirmed end-to-end. See [`docs/sprints/SPRINT_1.md`](docs/sprints/SPRINT_1.md) for the full ticket log. Sprint 2 is not yet planned — per the project's "plan one sprint at a time" approach, its scope will be designed next based on what Sprint 1 actually produced.
 
 ---
 

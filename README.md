@@ -197,21 +197,11 @@ These documents are intentionally maintained alongside the implementation to dem
 
 # Current Status
 
-**Current Sprint**
+**Sprint 1 — Project Bootstrap: Complete**
 
-Sprint 1 — Project Bootstrap
+Delivered: repository structure, FastAPI backend with a config layer and health endpoint, React + TypeScript frontend proving live backend connectivity, and a Dockerized dev environment (`docker-compose up` runs the whole stack). See [`docs/sprints/SPRINT_1.md`](docs/sprints/SPRINT_1.md) for the full ticket log.
 
-Current focus:
-
-* Repository setup
-* Backend architecture
-* Frontend setup
-* Docker
-* FastAPI
-
-No business logic has been implemented yet.
-
-The focus is on building a clean, maintainable foundation.
+No business logic has been implemented yet — that remains intentional. Sprint 2's scope is not yet planned; it'll be designed next based on what Sprint 1 actually produced.
 
 ---
 
