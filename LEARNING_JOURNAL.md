@@ -176,3 +176,15 @@ def health(settings: Settings = Depends(get_settings)):
 **Node/Express equivalent:** Structurally identical to a Node Dockerfile — `COPY package.json package-lock.json ./` + `RUN npm ci` *before* `COPY . .`, for the exact same layer-caching reason. `.dockerignore` excluding `.venv` here ≈ excluding `node_modules` there — both are large, platform-specific, and get reinstalled inside the container regardless.
 
 **Concept worth remembering — how this differs from "running locally":** every prior verification (T1.4, T1.5, T2.3) ran `uv run uvicorn ...` directly on the host Mac, using its own Python/`.venv`/OS — if a teammate's machine differs (Python patch version, OS, missing system library), behavior can differ ("works on my machine"). `docker build` instead constructs a completely separate, isolated Linux filesystem from scratch (starting from the `ghcr.io/astral-sh/uv:...` base image, not from anything on the Mac), copies in only what the Dockerfile specifies, and installs dependencies inside *that* filesystem. The result — an **image** — is a frozen template; `docker run` starts an actual running instance of it (a **container**), using the Python/dependencies that live inside the container, not the host's. `-p 8020:8000` is a port-mapping tunnel — the container's network is walled off by default, and this forwards traffic from a host port into the container's internal port. Payoff: the same image runs identically on any machine with Docker installed, no local Python/`uv`/dependency setup required at all. Not Python-specific — the same pattern applies to any backend language.
+
+### T3.2 — Frontend Dockerfile
+
+**Date:** 2026-07-13
+
+**What was done:** `frontend/Dockerfile` (base image `node:22-slim`, `npm ci` before app code copied, runs `npm run dev -- --host 0.0.0.0`) and `frontend/.dockerignore` (excludes `node_modules`, `dist`, `.env`, `.git`).
+
+**Why `node:22-slim` over `node:22-alpine`:** Alpine uses `musl` libc instead of glibc, which has a real history of missing prebuilt native bindings for certain npm packages — the *exact* class of bug hit and fixed on the host in T2.1 (Rolldown's native binding failing to install). Chose `slim` specifically to avoid re-triggering that inside the container; confirmed by a clean build with no missing-binding errors.
+
+**Problem it solved:** Frontend now runs in an isolated, portable environment too, matching what T3.1 gave the backend — no local Node/npm setup required on any machine with Docker.
+
+**Verification:** built the image, ran it with `-p 5193:5173`, confirmed the container log shows Vite bound to `0.0.0.0`, and the root page returned `200` through the mapped port.
