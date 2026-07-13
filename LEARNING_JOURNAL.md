@@ -135,3 +135,21 @@ def health(settings: Settings = Depends(get_settings)):
 **Problem it solved:** Makes the frontend's folder decision (where API code vs. components live) visible and committable on its own, rather than being an invisible side effect of wherever T2.3's first file happens to land.
 
 **Node/Express equivalent:** Same convention shows up in Express projects too — a `routes/` or `controllers/` folder with a `.gitkeep` before the first route file exists, for the identical reason (npm/git don't track empty directories either).
+
+### T2.3 — Health-check page
+
+**Date:** 2026-07-13
+
+**What was done:** `src/api/health.ts` (typed `fetchHealth()`), `src/components/HealthStatus.tsx` (loading/error/success rendering via `useEffect`+`useState`), `App.tsx` rewritten to render it. Removed now-dead template files (`App.css`, template assets) since nothing imports them anymore. Added `.env.example` for `VITE_API_BASE_URL`.
+
+**Why:** `BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'` mirrors `settings.py`'s pattern exactly — a default baked into code, `.env` only needed to override it, so the frontend runs with zero setup. Plain `useEffect`/`useState` instead of a data-fetching library, matching the earlier decision to keep the stack minimal for one API call.
+
+**Problem it solved:** First concrete, browser-verified proof that the full chain works: React → `fetch()` → CORS-approved cross-origin request → FastAPI → Pydantic-validated response → rendered DOM. Backend and frontend existed independently before this; now they're actually connected.
+
+**Concept worth remembering — `import.meta.env` vs Node's `process.env`:** Vite's env system, not the same mechanism as Node. (1) Only `VITE_`-prefixed vars are exposed to browser code at all — a deliberate boundary so non-prefixed secrets never leak into client-side JS. (2) Values are baked in at **build time**, not read live at runtime — changing `.env` requires restarting the dev server, unlike `process.env` in a running Express process.
+
+**Gotcha encountered during verification:** CORS failed on first browser test — looked like a bug, wasn't. Default port `5173` was already occupied by an unrelated process on this machine, so the frontend was tested on `5183` instead, but the backend's CORS allowlist (from T1.3) only had `5173`. Fixed by temporarily widening the backend's `.env` for the test only — same "environment collision produces a false signal" class of issue as the port-8000 conflict in T1.4.
+
+**Verification:** ran both servers, opened the actual page in a browser (not just `curl`) — rendered `"Backend status: ok (development)"`, confirmed via screenshot and network tab (`GET /api/health` → `200`).
+
+**Node/Express equivalent:** `useEffect` calling `fetch()` on mount ≈ any client-side fetch-on-load pattern in a React frontend served by an Express backend — same idea regardless of framework. `import.meta.env` has no Express equivalent since Express is server-only and reads `process.env` directly at runtime; the build-time/browser split is specific to frontend bundlers like Vite.

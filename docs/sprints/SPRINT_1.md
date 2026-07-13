@@ -34,7 +34,7 @@ A ticket is only checked off once the implementation works, follows the layering
 - [x] **T2.2 — Basic frontend folder structure**
   e.g. `src/components`, `src/api` — just enough to hold the health-check call cleanly.
 
-- [ ] **T2.3 — Health-check page**
+- [x] **T2.3 — Health-check page**
   A minimal page/component that calls `GET /api/health` and renders the result. This is the concrete proof of React ↔ FastAPI communication.
 
 ## Docker
