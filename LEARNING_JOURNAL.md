@@ -188,3 +188,23 @@ def health(settings: Settings = Depends(get_settings)):
 **Problem it solved:** Frontend now runs in an isolated, portable environment too, matching what T3.1 gave the backend — no local Node/npm setup required on any machine with Docker.
 
 **Verification:** built the image, ran it with `-p 5193:5173`, confirmed the container log shows Vite bound to `0.0.0.0`, and the root page returned `200` through the mapped port.
+
+### T3.3 — docker-compose.yml
+
+**Date:** 2026-07-13
+
+**What was done:** Root-level `docker-compose.yml` building and running both `backend` and `frontend` services together, each with a bind-mounted source volume (for live-reload) plus an **anonymous volume** protecting `.venv`/`node_modules` from being overwritten by the mount.
+
+**Why the anonymous volume matters:** `volumes: [./backend:/app, /app/.venv]` — the first line bind-mounts host code into the container (enabling hot-reload); the second, with no host path before the colon, tells Docker to carve that specific subfolder back out and let the container manage it independently. Without it, the host's macOS-built `.venv`/`node_modules` would overwrite the container's own Linux-built copies — the exact same root cause as the Rolldown/musl native-binding failures from T2.1/T3.2, just triggered a different way (host binaries inside a Linux container instead of the wrong libc).
+
+**Problem it solved:** One command (`docker compose up`) now builds and runs the whole stack with correct networking/ports, instead of manually running `docker build`/`docker run` twice and keeping them in sync by hand.
+
+**Verification (beyond "it built"):**
+1. `docker compose up -d --build` — both containers started.
+2. `curl` confirmed both the backend health endpoint and frontend root page respond through mapped ports.
+3. Explicitly checked *inside* both containers (`docker compose exec ... ls .venv/...` / `node_modules/.bin`) that real dependencies were present — confirming the anonymous-volume protection actually worked, not just assuming it.
+4. **Touched a backend file on the host** and watched the container's own logs show `uvicorn`'s reloader restart on its own — proving the full T3.1/T3.2/T3.3 hot-reload chain works end-to-end, not just in theory.
+
+**Practical note:** verified using a temporary, uncommitted `docker-compose.override.yml` with alternate ports (`8030`/`5193`), since the standard `8000`/`5173` are occupied on this host by an unrelated project. The committed file uses the standard ports — running it while those other processes are up will hit the same "address already in use" error seen earlier.
+
+**Node/Express equivalent:** No translation needed — Compose files are language-agnostic. The `node_modules` anonymous-volume trick shown here is a very common pattern in any dockerized Node dev setup, for the identical reason.
