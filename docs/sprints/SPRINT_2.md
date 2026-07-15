@@ -42,7 +42,7 @@ A ticket is only checked off once the implementation works, follows the layering
 - [x] **ENGINE-006 — Response Composer**
   Reads `summary` (and `articles` as sources) from state, formats the final `response` (e.g. `{"answer": "...", "sources": [...]}`). Deterministic — belongs in the Service layer's spirit (no reasoning), even though it runs as a graph node.
 
-- [ ] **ENGINE-007 — Connect the complete graph**
+- [x] **ENGINE-007 — Connect the complete graph**
   Wire `START → Planner → Retrieval → Summarizer → Response Composer → END` in `app/graph/workflow.py` using LangGraph's `StateGraph`. Invoke it end-to-end with a sample `{"query": "..."}` and confirm the final state contains all five fields, fully mocked.
 
 ---
