@@ -258,3 +258,18 @@ def health(settings: Settings = Depends(get_settings)):
 4. **START / END** — not states themselves, just markers. `START` is the entry point where the initial `{query}` enters the graph; `END` is the exit point where LangGraph hands back whatever the final accumulated state contains.
 
 **Problem this ticket solved:** forced actually understanding LangGraph's mental model — state as the only channel between nodes, edges as fixed graph-wiring rather than node-level decisions — before writing any graph code in ENGINE-002+. The edges misunderstanding in particular would have led to writing routing logic *inside* node functions later, which contradicts the Planner-plans/LangGraph-executes split the whole architecture is built on.
+
+### ENGINE-002 — Define shared state
+
+**Date:** 2026-07-15
+
+**What was done:** Added `langgraph` as a dependency; created `app/graph/state.py` with a `GraphState(TypedDict, total=False)` holding `query`, `execution_plan`, `articles`, `summary`, `response`.
+
+**Decisions made:**
+- **`TypedDict` over Pydantic** for graph state — LangGraph's own docs/ecosystem are built primarily around `TypedDict`; using it avoids learning two libraries' semantics simultaneously while still learning LangGraph's actual mechanics. Tradeoff: no runtime validation — a node could return a wrong-shaped value and nothing would catch it until a type-checker or a later bug surfaced it. Acceptable for now since every node's output is hand-written/mocked this sprint.
+- **`total=False`** — makes every field optional, since the real state genuinely doesn't have all five fields until the graph finishes; only `query` exists at `START`.
+- **`articles`/`response` left loosely typed (`list[dict]`, `dict`)** rather than given dedicated schemas — their real shape isn't known until Sprint 3's real Retrieval/Response Composer logic exists.
+
+**Verification:** didn't just check the file imports cleanly — actually constructed `StateGraph(GraphState)` from LangGraph and confirmed it accepts the type without error, and built a partial state (`{"query": "..."}`) to confirm the "not all fields present yet" case works as intended.
+
+**Node/Express equivalent:** closest analogy is a shared TypeScript `interface` with optional fields (`query?: string`) passed through a pipeline — same compile-time-only guarantee as `TypedDict`; nothing stops a JS function at runtime from returning the wrong shape without an added validator like `zod`.

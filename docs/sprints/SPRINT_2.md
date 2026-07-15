@@ -27,7 +27,7 @@ A ticket is only checked off once the implementation works, follows the layering
 - [x] **ENGINE-001 — Learn LangGraph concepts**
   Understand `State`, `Nodes`, `Edges`, `START`, `END` before writing any code. Deliverable: a short written summary of these four concepts in `LEARNING_JOURNAL.md`, in your own words, before ENGINE-002 starts.
 
-- [ ] **ENGINE-002 — Define shared state**
+- [x] **ENGINE-002 — Define shared state**
   Add `langgraph` as a backend dependency. Create `app/graph/state.py` defining one shared state shape: `query`, `execution_plan`, `articles`, `summary`, `response`. Nothing else yet.
 
 - [ ] **ENGINE-003 — Planner node (mock)**
