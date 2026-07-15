@@ -299,3 +299,15 @@ def health(settings: Settings = Depends(get_settings)):
 **Consistent with ENGINE-003:** didn't fake-read `execution_plan` even though the ticket text says the node "reads" it — the mock's output doesn't depend on its content yet, so referencing it would be unused/dead code. Same reasoning as the Planner mock.
 
 **Verification:** direct function call, plus chaining `planner_node` → `retrieval_node` in a real two-node LangGraph graph and confirming the final state accumulated all three fields (`query`, `execution_plan`, `articles`) correctly across both nodes — not just that each node works in isolation.
+
+### ENGINE-005 — Summarizer node (mock)
+
+**Date:** 2026-07-15
+
+**What was done:** `app/agents/summarizer.py` — `summarizer_node(state) -> GraphState` returning a hardcoded `{"summary": "Mock Summary"}`. No LLM call.
+
+**Folder placement:** `app/agents/`, not `app/services/` — Summarizer is an **AI node** per ADR 0001 (it's meant to reason over articles once real), unlike Retrieval which went to `services/` in ENGINE-004. Same rule applied consistently: folder is decided by node classification, not by "does this run inside the graph."
+
+**Consistent with ENGINE-003/004:** didn't fake-read `articles` — output is fully hardcoded regardless of input at this mock stage.
+
+**Verification:** direct function call, plus chaining `planner_node → retrieval_node → summarizer_node` in a real three-node LangGraph graph, confirming the final state accumulated all four fields (`query`, `execution_plan`, `articles`, `summary`) correctly in sequence.
