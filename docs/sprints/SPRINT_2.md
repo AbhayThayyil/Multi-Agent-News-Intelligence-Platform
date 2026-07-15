@@ -24,7 +24,7 @@ A ticket is only checked off once the implementation works, follows the layering
 
 ## Tickets
 
-- [ ] **ENGINE-001 — Learn LangGraph concepts**
+- [x] **ENGINE-001 — Learn LangGraph concepts**
   Understand `State`, `Nodes`, `Edges`, `START`, `END` before writing any code. Deliverable: a short written summary of these four concepts in `LEARNING_JOURNAL.md`, in your own words, before ENGINE-002 starts.
 
 - [ ] **ENGINE-002 — Define shared state**
