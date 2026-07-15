@@ -323,3 +323,17 @@ def health(settings: Settings = Depends(get_settings)):
 **Folder placement:** `app/services/`, matching Retrieval (ENGINE-004) — Deterministic per ADR 0001.
 
 **Verification — a milestone:** direct function call, plus building the **complete four-node chain** (`planner → retrieval → summarizer → response_composer`) in a throwaway test graph and confirming the final state contains exactly the five fields the Sprint Exit Criteria calls for (`query`, `execution_plan`, `articles`, `summary`, `response`) — the whole mocked pipeline works end-to-end, even before ENGINE-007 formally commits the graph wiring as its own file.
+
+### ENGINE-007 — Connect the complete graph
+
+**Date:** 2026-07-15
+
+**What was done:** `app/graph/workflow.py` — `build_graph() -> CompiledStateGraph`, wiring `START → planner → retrieval → summarizer → response_composer → END` via LangGraph's `StateGraph`, importing each node from its actual home (`app.agents.*` for AI nodes, `app.services.*` for deterministic ones).
+
+**Problem it solved:** this is the ticket that turns five previously-independent pieces (state shape, four separate node files) into one real, committed, invokable graph — the actual deliverable ADR 0001 was written to justify, and the concrete answer to "does the orchestration layer work" independent of any real AI or tool logic.
+
+**Verification (two layers, not one):**
+1. Imported `build_graph` from the real committed module (not a copy-pasted test script like ENGINE-006 used) and confirmed `graph.invoke({"query": "..."})` produces the exact final state the Sprint Exit Criteria specifies.
+2. Invoked it again with a **different** query — one that literally says "Show me a timeline" — and confirmed `execution_plan` and every other field stayed identical. This concretely proves the mocks are fully input-independent right now, and sets up the exact contrast Sprint 3 will demonstrate: a real Planner would change `execution_plan` for that query, while the graph's structure (this file) wouldn't need to change at all.
+
+**Sprint 2 Exit Criteria: met.** All ENGINE-001–007 tickets complete.
