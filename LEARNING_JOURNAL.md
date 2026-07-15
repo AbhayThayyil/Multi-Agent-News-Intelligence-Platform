@@ -273,3 +273,17 @@ def health(settings: Settings = Depends(get_settings)):
 **Verification:** didn't just check the file imports cleanly — actually constructed `StateGraph(GraphState)` from LangGraph and confirmed it accepts the type without error, and built a partial state (`{"query": "..."}`) to confirm the "not all fields present yet" case works as intended.
 
 **Node/Express equivalent:** closest analogy is a shared TypeScript `interface` with optional fields (`query?: string`) passed through a pipeline — same compile-time-only guarantee as `TypedDict`; nothing stops a JS function at runtime from returning the wrong shape without an added validator like `zod`.
+
+### ENGINE-003 — Planner node (mock)
+
+**Date:** 2026-07-15
+
+**What was done:** `app/agents/planner.py` — `planner_node(state: GraphState) -> GraphState` returning a hardcoded `{"execution_plan": ["retrieve", "summarize"]}`. Not connected to an LLM.
+
+**Decision — didn't fake-read `query`:** the ticket description says the Planner "reads query from state," but the function doesn't actually reference `state["query"]` anywhere, since the mock's output is fully hardcoded regardless of input. Wrote it honestly instead of adding an unused `query = state["query"]` line just to match the ticket's wording — dead code with no real justification. The function still accepts `state` (required for the node interface), it just doesn't need any particular field yet.
+
+**Problem it solved:** proves a node function can be written, registered, and invoked inside LangGraph's actual execution engine — the mechanical piece Sprint 2 exists to validate — before any real reasoning exists.
+
+**Verification (two layers, not just "it runs"):**
+1. Direct function call: `planner_node({"query": "..."})` returns exactly `{"execution_plan": ["retrieve", "summarize"]}`.
+2. Built a real minimal single-node graph (`START → planner → END`) with LangGraph's actual `StateGraph`/`.compile()`/`.invoke()`, and confirmed the final state contained **both** `query` (from the input) and `execution_plan` (from the node's return) — concrete, first-hand proof of ENGINE-001's "LangGraph automatically merges a node's partial return into the accumulated state" concept, not just a claim from the docs.
