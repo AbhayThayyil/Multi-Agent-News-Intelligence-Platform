@@ -201,7 +201,11 @@ These documents are intentionally maintained alongside the implementation to dem
 
 Delivered: repository structure, FastAPI backend with a config layer and health endpoint, React + TypeScript frontend proving live backend connectivity, and a Dockerized dev environment (`docker-compose up` runs the whole stack). See [`docs/sprints/SPRINT_1.md`](docs/sprints/SPRINT_1.md) for the full ticket log.
 
-No business logic has been implemented yet — that remains intentional. Sprint 2's scope is not yet planned; it'll be designed next based on what Sprint 1 actually produced.
+**Sprint 2 — Execution Engine: Complete**
+
+Delivered: a real LangGraph workflow (`START → Planner → Retrieval → Summarizer → Response Composer → END`) with fully mocked node logic — zero LLM calls, zero real tool calls. Proves the orchestration engine itself works before any real intelligence is introduced. See [`ADR 0001`](docs/ADR/0001-langgraph-execution-engine.md) for the design rationale and [`docs/sprints/SPRINT_2.md`](docs/sprints/SPRINT_2.md) for the full ticket log.
+
+No business logic (real reasoning, real tool calls, persistence) has been implemented yet — that remains intentional. Sprint 3's scope is not yet planned; it'll be designed next, replacing mocked node logic with real implementations without changing the graph's structure.
 
 ---
 

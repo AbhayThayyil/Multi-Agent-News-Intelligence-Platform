@@ -1,6 +1,6 @@
 # Sprint 2 — Execution Engine
 
-**Status:** Design proposed — awaiting approval before implementation.
+**Status:** Complete — all tickets (ENGINE-001–007) implemented and verified; Sprint Exit Criteria confirmed end-to-end on a clean `main` (2026-07-15).
 
 Goal: prove the LangGraph orchestration engine works — state, nodes, edges, conditional plans — using **entirely mocked node logic**. Zero LLM calls, zero real tool calls (RSS, web search). If something breaks in Sprint 2, it's the engine, not an LLM provider, a prompt, or an external API.
 

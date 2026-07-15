@@ -332,11 +332,11 @@ Goal: build a production-ready project foundation (repository structure, FastAPI
 
 **Status:** Complete. All tickets (T1.1–T4.3) implemented and verified; Sprint Exit Criteria confirmed end-to-end. See [`docs/sprints/SPRINT_1.md`](docs/sprints/SPRINT_1.md) for the full ticket log.
 
-## Sprint 2 — Execution Engine
+## Sprint 2 — Execution Engine (Complete)
 
 Goal: prove the LangGraph orchestration engine — state, nodes, edges, conditional plans — using entirely mocked node logic. Zero LLM calls, zero real tool calls. See [`ADR 0001`](docs/ADR/0001-langgraph-execution-engine.md) for the rationale and [`docs/sprints/SPRINT_2.md`](docs/sprints/SPRINT_2.md) for the ticket breakdown (ENGINE-001–007).
 
-**Status:** Design proposed, awaiting approval before implementation begins.
+**Status:** Complete. All tickets implemented and verified; `build_graph()` runs `START → Planner → Retrieval → Summarizer → Response Composer → END` end-to-end with fully mocked node logic — confirmed on a clean `main`. Sprint 3 is not yet planned; per the project's "plan one sprint at a time" approach, it'll be designed next — replacing mocked node logic with real implementations (real Planner reasoning, real RSS tool, real LLM summarization) without changing the graph's structure.
 
 ---
 
