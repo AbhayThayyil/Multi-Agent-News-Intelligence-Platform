@@ -238,3 +238,23 @@ def health(settings: Settings = Depends(get_settings)):
 **What Sprint 1 actually built:** a layered FastAPI backend (config → API → schemas) and a React+TypeScript frontend, each independently Dockerized, wired together via `docker-compose.yml` with working hot-reload in both directions. No business logic, LangGraph, or persistence — exactly as scoped, avoiding the over-engineering the project explicitly warns against.
 
 **Recurring theme across the whole sprint:** most real gotchas were environment/tooling issues, not application logic bugs — `uv`/Homebrew permission failures, Rolldown's native-binding failure on outdated Node, Alpine vs. slim libc differences, and this Compose port-merging behavior. The application code itself (settings, health endpoint, CORS, the React health-check page) worked essentially as designed once written. Worth remembering going into Sprint 2: budget time for environment surprises, not just feature logic.
+
+---
+
+## Sprint 2 — Execution Engine
+
+### ENGINE-001 — Learn LangGraph concepts
+
+**Date:** 2026-07-15
+
+**Understanding, in my own words (corrected after a first pass):**
+
+1. **State** — a shared dict-like object that carries the accumulated results of every node. It starts with just `{query}`; after each node runs, whatever new field(s) that node produced get merged into it. Crucially, a node never refers to *another node* — it only ever reads and writes **fields in the shared state**. Retrieval doesn't know Planner exists; it just reads `query` and `execution_plan`. The state object is the *only* thing connecting nodes — this is exactly the "agents don't call each other directly" rule from `PROJECT_CONTEXT.md`, made concrete.
+
+2. **Nodes** — units of work. Plain functions that look at the current state and do whatever their one job is, then return the new field(s) they're contributing.
+
+3. **Edges** — **not** decided by the node itself. My first instinct was wrong here: I thought a node's function could decide which edge to take next. Actually, for Sprint 2, edges are fixed connections wired up when *building* the graph (e.g. `graph.add_edge("planner", "retrieval")`), completely independent of what the node returns — the node's job ends the moment it returns its state update. Real state-driven branching exists (**conditional edges** — a separate routing function attached to the edge, which inspects state and picks the next node from several options), but that's a distinct piece of graph-wiring code, not the node deciding anything. Deliberately deferring conditional edges to a later sprint — Sprint 2 uses only fixed edges (`Planner → Retrieval → Summarizer → Response Composer`, always in that order, no branching), per the "one sprint, one concept" mock-first approach in ADR 0001.
+
+4. **START / END** — not states themselves, just markers. `START` is the entry point where the initial `{query}` enters the graph; `END` is the exit point where LangGraph hands back whatever the final accumulated state contains.
+
+**Problem this ticket solved:** forced actually understanding LangGraph's mental model — state as the only channel between nodes, edges as fixed graph-wiring rather than node-level decisions — before writing any graph code in ENGINE-002+. The edges misunderstanding in particular would have led to writing routing logic *inside* node functions later, which contradicts the Planner-plans/LangGraph-executes split the whole architecture is built on.
