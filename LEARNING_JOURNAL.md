@@ -287,3 +287,15 @@ def health(settings: Settings = Depends(get_settings)):
 **Verification (two layers, not just "it runs"):**
 1. Direct function call: `planner_node({"query": "..."})` returns exactly `{"execution_plan": ["retrieve", "summarize"]}`.
 2. Built a real minimal single-node graph (`START → planner → END`) with LangGraph's actual `StateGraph`/`.compile()`/`.invoke()`, and confirmed the final state contained **both** `query` (from the input) and `execution_plan` (from the node's return) — concrete, first-hand proof of ENGINE-001's "LangGraph automatically merges a node's partial return into the accumulated state" concept, not just a claim from the docs.
+
+### ENGINE-004 — Retrieval node (mock)
+
+**Date:** 2026-07-15
+
+**What was done:** `app/services/retrieval.py` — `retrieval_node(state) -> GraphState` returning a hardcoded `articles` list (one mock article/source). No RSS, no web search, no real tool calls.
+
+**Decision — folder placement (`app/services/`, not `app/agents/`):** Retrieval is classified as a **Deterministic** node per ADR 0001 (no reasoning), but Sprint 1's original `CLAUDE.md` folder comment grouped "Planner, Retrieval, Summarizer" together under `agents/`. Chose to follow `CLAUDE.md`'s actual layering principle instead (deterministic logic → Services, AI reasoning → Agents) over the stale folder comment, which was updated to match. This means graph nodes are split across folders by *what kind of logic they contain*, not by "is this a node in the graph" — `app/graph/workflow.py` (ENGINE-007) will import from both `agents/` and `services/` when wiring the graph together.
+
+**Consistent with ENGINE-003:** didn't fake-read `execution_plan` even though the ticket text says the node "reads" it — the mock's output doesn't depend on its content yet, so referencing it would be unused/dead code. Same reasoning as the Planner mock.
+
+**Verification:** direct function call, plus chaining `planner_node` → `retrieval_node` in a real two-node LangGraph graph and confirming the final state accumulated all three fields (`query`, `execution_plan`, `articles`) correctly across both nodes — not just that each node works in isolation.

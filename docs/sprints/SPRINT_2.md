@@ -33,7 +33,7 @@ A ticket is only checked off once the implementation works, follows the layering
 - [x] **ENGINE-003 — Planner node (mock)**
   Reads `query` from state, returns a **hardcoded** `execution_plan: ["retrieve", "summarize"]`. Not connected to an LLM. We're testing the graph, not AI.
 
-- [ ] **ENGINE-004 — Retrieval node (mock)**
+- [x] **ENGINE-004 — Retrieval node (mock)**
   Reads `execution_plan` from state, returns a hardcoded `articles` list (e.g. one mock article, mock source). No RSS, no web search, no real tool calls.
 
 - [ ] **ENGINE-005 — Summarizer node (mock)**

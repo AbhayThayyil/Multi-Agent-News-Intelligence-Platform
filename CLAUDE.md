@@ -63,16 +63,19 @@ Add a new agent, tool, or infrastructure component only when a real, current req
 backend/
     app/
         api/        # HTTP layer — no business logic
-        agents/     # Planner, Retrieval, Summarizer
+        agents/     # AI nodes — Planner, Summarizer (reasoning)
+        graph/      # LangGraph state + workflow wiring
         tools/      # External I/O — no reasoning
         prompts/
-        services/   # Deterministic business logic
+        services/   # Deterministic nodes/logic — Retrieval, Response Composer
         schemas/    # Pydantic contracts
         models/
         config/
 frontend/
 docs/
 ```
+
+Node classification (AI / Deterministic / Hybrid — see [`ADR 0001`](docs/ADR/0001-langgraph-execution-engine.md)) determines the folder: `agents/` for reasoning, `services/` for deterministic logic, regardless of a node's role in the graph.
 
 ---
 
