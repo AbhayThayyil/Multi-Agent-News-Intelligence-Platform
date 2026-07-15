@@ -150,6 +150,8 @@ Future agents will only be added when a real product requirement justifies them.
 
 Avoid over-engineering.
 
+Each agent/node is classified as **AI** (needs reasoning), **Deterministic** (plain Python, no reasoning), or **Hybrid** (combines both — none built yet). See [`ADR 0001`](docs/ADR/0001-langgraph-execution-engine.md) for the full rationale.
+
 ---
 
 # High-Level Architecture
@@ -324,26 +326,17 @@ Each folder exists because it owns a specific responsibility.
 
 # Current Sprint
 
-## Sprint 1 — Project Bootstrap
+## Sprint 1 — Project Bootstrap (Complete)
 
-Goal:
+Goal: build a production-ready project foundation (repository structure, FastAPI scaffold, React scaffold, Docker, health endpoint, React ↔ FastAPI communication). Business logic, LangGraph, and persistence intentionally postponed.
 
-Build a production-ready project foundation.
+**Status:** Complete. All tickets (T1.1–T4.3) implemented and verified; Sprint Exit Criteria confirmed end-to-end. See [`docs/sprints/SPRINT_1.md`](docs/sprints/SPRINT_1.md) for the full ticket log.
 
-Deliverables:
+## Sprint 2 — Execution Engine
 
-* repository structure
-* FastAPI scaffold
-* React scaffold
-* Docker
-* health endpoint
-* React ↔ FastAPI communication
+Goal: prove the LangGraph orchestration engine — state, nodes, edges, conditional plans — using entirely mocked node logic. Zero LLM calls, zero real tool calls. See [`ADR 0001`](docs/ADR/0001-langgraph-execution-engine.md) for the rationale and [`docs/sprints/SPRINT_2.md`](docs/sprints/SPRINT_2.md) for the ticket breakdown (ENGINE-001–007).
 
-Business logic is intentionally postponed.
-
-Database (PostgreSQL) and Redis are deferred to a later sprint — not part of Sprint 1.
-
-**Status:** Complete. All tickets (T1.1–T4.3) implemented and verified; Sprint Exit Criteria confirmed end-to-end. See [`docs/sprints/SPRINT_1.md`](docs/sprints/SPRINT_1.md) for the full ticket log. Sprint 2 is not yet planned — per the project's "plan one sprint at a time" approach, its scope will be designed next based on what Sprint 1 actually produced.
+**Status:** Design proposed, awaiting approval before implementation begins.
 
 ---
 
