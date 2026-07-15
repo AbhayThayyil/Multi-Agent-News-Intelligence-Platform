@@ -337,3 +337,19 @@ def health(settings: Settings = Depends(get_settings)):
 2. Invoked it again with a **different** query — one that literally says "Show me a timeline" — and confirmed `execution_plan` and every other field stayed identical. This concretely proves the mocks are fully input-independent right now, and sets up the exact contrast Sprint 3 will demonstrate: a real Planner would change `execution_plan` for that query, while the graph's structure (this file) wouldn't need to change at all.
 
 **Sprint 2 Exit Criteria: met.** All ENGINE-001–007 tickets complete.
+
+---
+
+## Sprint 2 — Closeout Retrospective
+
+**Date:** 2026-07-15
+
+**Re-verified fresh on a clean `main`** (not just trusting each ticket's individual verification): `build_graph()` invoked with `{"query": "What happened in AI this week?"}` produced exactly the final state the Sprint Exit Criteria specifies. Also confirmed `backend/pyproject.toml` contains only `fastapi`, `langgraph`, `pydantic-settings`, `uvicorn` — no LLM SDK, no RSS/search library — genuinely zero AI or tool dependencies snuck in anywhere, not just "we didn't call one."
+
+**What Sprint 2 actually built:** a real, running LangGraph graph — `START → Planner → Retrieval → Summarizer → Response Composer → END` — with every node's logic fully hardcoded. Five files total (`app/graph/state.py`, `app/graph/workflow.py`, `app/agents/planner.py`, `app/agents/summarizer.py`, `app/services/retrieval.py`, `app/services/response_composer.py` — six, correcting the count), each verified individually *and* in combination as they were chained together ticket by ticket (two-node, then three-node, then four-node graphs before the final committed version).
+
+**A recurring engineering lesson, made concrete this sprint:** the "don't fake-read unused state fields" rule that came up in ENGINE-003/004/005 (Planner/Retrieval/Summarizer never touch fields their hardcoded logic doesn't need) versus ENGINE-006 genuinely needing to read `summary`/`articles` because Response Composer's formatting logic is real and permanent, not a stand-in for future AI. Same principle — "don't write code you can't explain" — produced two different-looking outcomes depending on whether the underlying logic was a temporary mock or genuinely finished work. Worth remembering in Sprint 3: as mocks get replaced with real logic, several of those "don't touch this field" lines will become real reads, and that's expected, not a sign the earlier code was wrong.
+
+**Folder-placement decision (ENGINE-004) held up across the whole sprint:** classifying nodes as AI (`app/agents/`) vs. Deterministic (`app/services/`) per ADR 0001, rather than grouping all graph nodes together, meant `app/graph/workflow.py` imports from both folders — a small but real test of whether the layering principle from `CLAUDE.md` actually works in practice, not just on paper. It did, cleanly.
+
+**What Sprint 3 will actually change:** per ADR 0001's whole premise, none of `app/graph/workflow.py`'s wiring should need to change — only what's *inside* `planner_node`, `retrieval_node`, and `summarizer_node` gets replaced (real reasoning, a real RSS tool, real LLM summarization). If Sprint 3 ends up needing to touch the graph's structure itself, that's a signal Sprint 2's design had a gap worth understanding, not just a normal next step.
