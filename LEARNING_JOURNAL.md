@@ -311,3 +311,15 @@ def health(settings: Settings = Depends(get_settings)):
 **Consistent with ENGINE-003/004:** didn't fake-read `articles` — output is fully hardcoded regardless of input at this mock stage.
 
 **Verification:** direct function call, plus chaining `planner_node → retrieval_node → summarizer_node` in a real three-node LangGraph graph, confirming the final state accumulated all four fields (`query`, `execution_plan`, `articles`, `summary`) correctly in sequence.
+
+### ENGINE-006 — Response Composer
+
+**Date:** 2026-07-15
+
+**What was done:** `app/services/response_composer.py` — `response_composer_node(state) -> GraphState` reading `state["summary"]` and `state["articles"]` and composing `{"response": {"answer": ..., "sources": ...}}`.
+
+**Different from ENGINE-003/004/005:** this is the first node that genuinely reads its input fields, rather than avoiding "dead code" by ignoring unused state. Response Composer's formatting logic is deterministic *permanently* — it's not a placeholder standing in for future AI reasoning like Planner/Retrieval/Summarizer's mocks are. So actually using `summary`/`articles` here is real logic, not something to defer.
+
+**Folder placement:** `app/services/`, matching Retrieval (ENGINE-004) — Deterministic per ADR 0001.
+
+**Verification — a milestone:** direct function call, plus building the **complete four-node chain** (`planner → retrieval → summarizer → response_composer`) in a throwaway test graph and confirming the final state contains exactly the five fields the Sprint Exit Criteria calls for (`query`, `execution_plan`, `articles`, `summary`, `response`) — the whole mocked pipeline works end-to-end, even before ENGINE-007 formally commits the graph wiring as its own file.
