@@ -30,7 +30,7 @@ A ticket is only checked off once the implementation works, follows the layering
 - [x] **ENGINE-002 — Define shared state**
   Add `langgraph` as a backend dependency. Create `app/graph/state.py` defining one shared state shape: `query`, `execution_plan`, `articles`, `summary`, `response`. Nothing else yet.
 
-- [ ] **ENGINE-003 — Planner node (mock)**
+- [x] **ENGINE-003 — Planner node (mock)**
   Reads `query` from state, returns a **hardcoded** `execution_plan: ["retrieve", "summarize"]`. Not connected to an LLM. We're testing the graph, not AI.
 
 - [ ] **ENGINE-004 — Retrieval node (mock)**
