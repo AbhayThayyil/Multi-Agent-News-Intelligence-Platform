@@ -336,7 +336,13 @@ Goal: build a production-ready project foundation (repository structure, FastAPI
 
 Goal: prove the LangGraph orchestration engine — state, nodes, edges, conditional plans — using entirely mocked node logic. Zero LLM calls, zero real tool calls. See [`ADR 0001`](docs/ADR/0001-langgraph-execution-engine.md) for the rationale and [`docs/sprints/SPRINT_2.md`](docs/sprints/SPRINT_2.md) for the ticket breakdown (ENGINE-001–007).
 
-**Status:** Complete. All tickets implemented and verified; `build_graph()` runs `START → Planner → Retrieval → Summarizer → Response Composer → END` end-to-end with fully mocked node logic — confirmed on a clean `main`. Sprint 3 is not yet planned; per the project's "plan one sprint at a time" approach, it'll be designed next — replacing mocked node logic with real implementations (real Planner reasoning, real RSS tool, real LLM summarization) without changing the graph's structure.
+**Status:** Complete. All tickets implemented and verified; `build_graph()` runs `START → Planner → Retrieval → Summarizer → Response Composer → END` end-to-end with fully mocked node logic — confirmed on a clean `main`.
+
+## Sprint 3 — AI Infrastructure
+
+Goal: introduce a real LLM into the system in a clean, production-ready way, without changing the orchestration architecture — by the end of this sprint, exactly one node (Summarizer) uses a real LLM; Planner and Retrieval remain mocked. See [`ADR 0002`](docs/ADR/0002-ai-infrastructure-layer.md) for the design rationale (LiteLLM/OpenRouter, the `app/llm/` service layer, prompt management, retry placement, interface-only dependency) and [`docs/sprints/SPRINT_3.md`](docs/sprints/SPRINT_3.md) for the ticket breakdown (AI-001–006).
+
+**Status:** Design approved via pre-sprint design review — awaiting AI-001 implementation.
 
 ---
 
