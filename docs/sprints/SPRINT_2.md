@@ -39,7 +39,7 @@ A ticket is only checked off once the implementation works, follows the layering
 - [x] **ENGINE-005 — Summarizer node (mock)**
   Reads `articles` from state, returns a hardcoded `summary` string. No LLM call.
 
-- [ ] **ENGINE-006 — Response Composer**
+- [x] **ENGINE-006 — Response Composer**
   Reads `summary` (and `articles` as sources) from state, formats the final `response` (e.g. `{"answer": "...", "sources": [...]}`). Deterministic — belongs in the Service layer's spirit (no reasoning), even though it runs as a graph node.
 
 - [ ] **ENGINE-007 — Connect the complete graph**
