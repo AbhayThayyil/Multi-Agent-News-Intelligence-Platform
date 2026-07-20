@@ -353,3 +353,21 @@ def health(settings: Settings = Depends(get_settings)):
 **Folder-placement decision (ENGINE-004) held up across the whole sprint:** classifying nodes as AI (`app/agents/`) vs. Deterministic (`app/services/`) per ADR 0001, rather than grouping all graph nodes together, meant `app/graph/workflow.py` imports from both folders — a small but real test of whether the layering principle from `CLAUDE.md` actually works in practice, not just on paper. It did, cleanly.
 
 **What Sprint 3 will actually change:** per ADR 0001's whole premise, none of `app/graph/workflow.py`'s wiring should need to change — only what's *inside* `planner_node`, `retrieval_node`, and `summarizer_node` gets replaced (real reasoning, a real RSS tool, real LLM summarization). If Sprint 3 ends up needing to touch the graph's structure itself, that's a signal Sprint 2's design had a gap worth understanding, not just a normal next step.
+
+---
+
+## Sprint 3 — AI Infrastructure
+
+### AI-001 — Choose and configure the LLM provider
+
+**Date:** 2026-07-17
+
+**What was done:** Added `litellm` as a dependency. Extended `Settings` with `openrouter_api_key` (required, validated to reject blank values, not just missing ones) and `llm_model` (defaulted to a real, verified-working free model). Verified a real completion through LiteLLM + OpenRouter, using `Settings`' actual committed default — no LangGraph changes anywhere.
+
+**Decision — extra validation on the API key:** plain `str` typing only rejects a field that's *completely absent* — an empty `OPENROUTER_API_KEY=` line in `.env` satisfies `str` just fine and would have loaded silently as `''`. Verified this directly (it did load silently before the fix). Added a `field_validator` to explicitly reject blank/whitespace-only values too, so a forgotten key fails loudly and clearly at settings-load time, not later as a confusing error from OpenRouter itself several layers away from the real mistake.
+
+**Gotcha — my first two guessed free-model names were both stale.** Initially proposed `meta-llama/llama-3.3-70b-instruct:free` based on general knowledge of OpenRouter's catalog — it had been retired to a paid-only model by the time we actually tested. Guessed five more candidates from memory; all failed the same way (`"This model is unavailable for free"` or `"No endpoints found"`). Stopped guessing and queried OpenRouter's live `/api/v1/models` endpoint directly instead, which returned the actual current list of free-suffixed models — `openai/gpt-oss-20b:free` from that real list worked on the first try. **Lesson: OpenRouter's free-tier catalog changes often enough that any specific model name (including ones in this journal) should be treated as unverified until re-checked against the live API** — this is precisely the kind of churn the LiteLLM/OpenRouter abstraction (ADR 0002) is meant to absorb: swapping the model was a one-line config change, not a rewrite, exactly as designed.
+
+**Verification:** confirmed three separate `Settings` validation paths (blank key rejected, fully-absent key rejected, real key accepted), then ran an actual completion call through `get_settings().llm_model` and `.openrouter_api_key` (not hardcoded test values) and got back a real model response — proving the *actual committed configuration*, not just "some code that looks like it," works end-to-end.
+
+**Handling the real API key safely:** the key value only ever flowed through `Settings` (read from the gitignored `.env`); it was never typed inline into a script or command, to avoid it appearing anywhere in this conversation more than once.
