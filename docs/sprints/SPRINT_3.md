@@ -39,7 +39,7 @@ By the end of this sprint, you should be able to explain:
 
 ## Tickets
 
-- [ ] **AI-001 — Choose and configure the LLM provider**
+- [x] **AI-001 — Choose and configure the LLM provider**
   Choose OpenRouter, integrate LiteLLM, add environment variables, verify a simple completion **outside the graph** (no LangGraph changes). Learning goals: why not call OpenAI directly, what LiteLLM abstracts, why provider abstraction matters.
 
 - [ ] **AI-002 — Create an LLM service layer**
