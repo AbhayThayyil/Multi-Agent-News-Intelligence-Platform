@@ -54,7 +54,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **AI-005 — LLM error handling**
   Handle timeout, invalid API key, rate limit, provider unavailable. Discussion required: should the graph fail, retry, or return partial results on each failure mode — this ticket is about understanding the trade-offs, not just writing `try/except`.
 
-- [ ] **AI-006 — End-to-end verification**
+- [x] **AI-006 — End-to-end verification**
   Run the graph (`Planner (Mock) → Retrieval (Mock) → Summarizer (Real) → Response Composer`) and verify: state evolution, summary quality, logging, error handling.
 
 ---
