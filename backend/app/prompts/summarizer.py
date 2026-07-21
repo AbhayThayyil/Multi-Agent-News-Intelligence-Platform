@@ -7,7 +7,7 @@ SUMMARIZER_INSTRUCTIONS = (
 
 def build_summarizer_prompt(articles: list[dict]) -> str:
     formatted_articles = "\n".join(
-        f"- {article['title']} (Source: {article['source']})"
+        f"- {article['title']} (Source: {article['source']}): {article['content']}"
         for article in articles
     )
     return f"{SUMMARIZER_INSTRUCTIONS}\n\nArticles:\n{formatted_articles}\n\nSummary:"

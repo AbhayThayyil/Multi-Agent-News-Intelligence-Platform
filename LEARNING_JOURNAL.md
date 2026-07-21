@@ -397,3 +397,15 @@ def health(settings: Settings = Depends(get_settings)):
 **A real, useful finding from verification:** ran the built prompt through the actual AI-002 `LLMClient` (not a hypothetical check) using Sprint 2's mock article shape (`{"title": "Mock Article", "source": "Mock RSS"}`). The model correctly replied that it didn't have enough information to summarize — which is the *right* behavior, not a bug: a title and source alone genuinely isn't enough content to summarize, and a well-behaved model saying so (rather than hallucinating a fake summary from nothing) is a good sign the prompt is working as intended. **Flagging forward:** this means once Retrieval becomes real (a future sprint), articles will need an actual body/content field, not just title/source — the mock shape from Sprint 2 won't be sufficient for AI-004's real Summarizer to produce a meaningful summary from mock data alone. Worth keeping in mind when AI-004 decides what mock article content to test against.
 
 **Verification:** confirmed `build_summarizer_prompt()` correctly interpolates article data into the expected format, then ran the actual output through the real LLM client end-to-end — an early integration check across AI-002 and AI-003 together, ahead of AI-004 wiring this into the graph.
+
+### AI-004 — Replace mock Summarizer
+
+**Date:** 2026-07-20
+
+**What was done:** `app/agents/summarizer.py` now builds a prompt (`build_summarizer_prompt`), calls the real LLM (`get_llm_client().complete(prompt)`), and returns the actual response as `summary` — no more hardcoded string. Also enriched `retrieval_node`'s mock articles with a `content` field (still 100% fake/hardcoded, no RSS, no network call) and updated `build_summarizer_prompt` to actually include that content in the formatted output — both necessary once AI-003's finding (title/source alone isn't enough to summarize) needed addressing for real.
+
+**Problem it solved:** this is the ticket ADR 0002's entire premise was building toward — proving that swapping mocked logic for real logic touches *only* the inside of the node function, never `app/graph/workflow.py`'s wiring.
+
+**Verification (the one that mattered most):** ran `build_graph()` — completely untouched since Sprint 2 — end-to-end, and confirmed: Planner still returns its hardcoded plan, Retrieval still returns hardcoded (now richer) mock data, Summarizer produces a genuinely real, LLM-generated summary of that mock content, and Response Composer correctly threads it into the final response — all without a single line of `workflow.py` changing. This is the concrete proof of the architecture holding up under real replacement, not just a claim.
+
+**Observed model-output quirk (not a code bug):** the real response included a stray trailing fragment (`...reasoning benchmarks.parks`) — a generation artifact from this particular free model, not something in our code. Noted for AI-006's "verify summary quality" criterion rather than something to chase down now.
