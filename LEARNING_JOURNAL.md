@@ -371,3 +371,17 @@ def health(settings: Settings = Depends(get_settings)):
 **Verification:** confirmed three separate `Settings` validation paths (blank key rejected, fully-absent key rejected, real key accepted), then ran an actual completion call through `get_settings().llm_model` and `.openrouter_api_key` (not hardcoded test values) and got back a real model response — proving the *actual committed configuration*, not just "some code that looks like it," works end-to-end.
 
 **Handling the real API key safely:** the key value only ever flowed through `Settings` (read from the gitignored `.env`); it was never typed inline into a script or command, to avoid it appearing anywhere in this conversation more than once.
+
+### AI-002 — Create an LLM service layer
+
+**Date:** 2026-07-17
+
+**What was done:** `app/llm/client.py` — `LLMClient` class with one method, `complete(prompt: str) -> str`, plus a cached `get_llm_client()` factory (same `@lru_cache` shape as `get_settings()`).
+
+**Decision — constructor injection over reach-in-every-call:** `LLMClient.__init__` receives `api_key`/`model` once at construction; `.complete()` itself never calls `get_settings()`. Chose this over a simpler plain function that reads global config on every call, specifically because this ticket names Dependency Injection as an explicit learning goal — constructor injection is the real version of that; a function reaching for global config on each call would only look like it.
+
+**Why the return type matters:** `.complete()` returns `response.choices[0].message.content` — a plain `str` — never LiteLLM's raw response object. This is the actual mechanism that makes the abstraction from ADR 0002 real: any future caller (the Summarizer, in AI-004) only ever sees plain Python types, so swapping LiteLLM out later wouldn't leak into caller code.
+
+**Problem it solved:** before this, any code wanting an LLM response would need to know LiteLLM's `completion()` signature, the `model="openrouter/..."` string format, and how to unwrap its response object. Now that's sealed inside one file.
+
+**Verification:** ran a real completion through `get_llm_client().complete(...)` and got back an actual model response (plain string, confirmed via `isinstance`). Confirmed `get_llm_client()` caching behaves identically to `get_settings()` — called it twice, same object identity both times (`is`, not just `==`). Also confirmed via `grep` on the file's own imports — not just by assumption — that `client.py` imports nothing beyond `functools`, `litellm`, and `app.config.settings`: zero coupling to LangGraph, agents, or graph state, exactly as the ticket requires.

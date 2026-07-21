@@ -42,7 +42,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **AI-001 — Choose and configure the LLM provider**
   Choose OpenRouter, integrate LiteLLM, add environment variables, verify a simple completion **outside the graph** (no LangGraph changes). Learning goals: why not call OpenAI directly, what LiteLLM abstracts, why provider abstraction matters.
 
-- [ ] **AI-002 — Create an LLM service layer**
+- [x] **AI-002 — Create an LLM service layer**
   New folder `app/llm/`, containing `client.py`. Initializes LiteLLM, exposes one clean interface, hides provider details. Must not know anything about LangGraph, Summarizer, or Planner. Learning goals: Dependency Injection, service abstraction, clean architecture.
 
 - [ ] **AI-003 — Prompt management**
