@@ -342,7 +342,13 @@ Goal: prove the LangGraph orchestration engine — state, nodes, edges, conditio
 
 Goal: introduce a real LLM into the system in a clean, production-ready way, without changing the orchestration architecture — by the end of this sprint, exactly one node (Summarizer) uses a real LLM; Planner and Retrieval remain mocked. See [`ADR 0002`](docs/ADR/0002-ai-infrastructure-layer.md) for the design rationale (LiteLLM/OpenRouter, the `app/llm/` service layer, prompt management, retry placement, interface-only dependency) and [`docs/sprints/SPRINT_3.md`](docs/sprints/SPRINT_3.md) for the ticket breakdown (AI-001–006).
 
-**Status:** Complete. All tickets implemented and verified; re-confirmed end-to-end on a clean `main` — `app/graph/workflow.py` was never touched during this sprint (its entire git history is one commit, from Sprint 2), concrete proof ADR 0002's premise held. One known limitation carried forward: LiteLLM's configured retry (`num_retries=2`) retries permanent failures (e.g. an invalid API key) the same as transient ones — a candidate for a future hardening pass, not fixed in Sprint 3. Sprint 4 is not yet planned.
+**Status:** Complete. All tickets implemented and verified; re-confirmed end-to-end on a clean `main` — `app/graph/workflow.py` was never touched during this sprint (its entire git history is one commit, from Sprint 2), concrete proof ADR 0002's premise held. One known limitation carried forward: LiteLLM's configured retry (`num_retries=2`) retries permanent failures (e.g. an invalid API key) the same as transient ones — a candidate for a future hardening pass, not fixed in Sprint 3.
+
+## Sprint 4 — Tool Infrastructure
+
+Goal: introduce the first real external tool (RSS) into the system, without changing the graph or the Planner. Retrieval stays deterministic — only its implementation changes, from mocked to a real Tool call. See [`docs/sprints/SPRINT_4.md`](docs/sprints/SPRINT_4.md) for the ticket breakdown (TOOL-001–007); TOOL-001 itself will produce a Tool Architecture ADR as its deliverable.
+
+**Status:** Design approved via pre-sprint design review — awaiting TOOL-001.
 
 ---
 
