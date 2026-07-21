@@ -338,11 +338,11 @@ Goal: prove the LangGraph orchestration engine — state, nodes, edges, conditio
 
 **Status:** Complete. All tickets implemented and verified; `build_graph()` runs `START → Planner → Retrieval → Summarizer → Response Composer → END` end-to-end with fully mocked node logic — confirmed on a clean `main`.
 
-## Sprint 3 — AI Infrastructure
+## Sprint 3 — AI Infrastructure (Complete)
 
 Goal: introduce a real LLM into the system in a clean, production-ready way, without changing the orchestration architecture — by the end of this sprint, exactly one node (Summarizer) uses a real LLM; Planner and Retrieval remain mocked. See [`ADR 0002`](docs/ADR/0002-ai-infrastructure-layer.md) for the design rationale (LiteLLM/OpenRouter, the `app/llm/` service layer, prompt management, retry placement, interface-only dependency) and [`docs/sprints/SPRINT_3.md`](docs/sprints/SPRINT_3.md) for the ticket breakdown (AI-001–006).
 
-**Status:** Design approved via pre-sprint design review — awaiting AI-001 implementation.
+**Status:** Complete. All tickets implemented and verified; re-confirmed end-to-end on a clean `main` — `app/graph/workflow.py` was never touched during this sprint (its entire git history is one commit, from Sprint 2), concrete proof ADR 0002's premise held. One known limitation carried forward: LiteLLM's configured retry (`num_retries=2`) retries permanent failures (e.g. an invalid API key) the same as transient ones — a candidate for a future hardening pass, not fixed in Sprint 3. Sprint 4 is not yet planned.
 
 ---
 
