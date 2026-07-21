@@ -1,6 +1,6 @@
 # Sprint 3 — AI Infrastructure
 
-**Status:** Design approved (via pre-sprint design review) — awaiting AI-001 implementation.
+**Status:** Complete — all tickets (AI-001–006) implemented and verified; Sprint Exit Criteria confirmed end-to-end on a clean `main` (2026-07-20). `app/graph/workflow.py` was never touched during this sprint (its entire git history is one commit, from Sprint 2's ENGINE-007) — confirming ADR 0002's premise held throughout.
 
 Goal: introduce a real LLM into the system in a clean, production-ready way, **without changing the orchestration architecture** built in Sprint 2. By the end of this sprint, exactly one node — Summarizer — uses a real LLM. Planner and Retrieval remain mocked.
 

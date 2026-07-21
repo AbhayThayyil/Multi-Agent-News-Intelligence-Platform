@@ -205,7 +205,11 @@ Delivered: repository structure, FastAPI backend with a config layer and health 
 
 Delivered: a real LangGraph workflow (`START → Planner → Retrieval → Summarizer → Response Composer → END`) with fully mocked node logic — zero LLM calls, zero real tool calls. Proves the orchestration engine itself works before any real intelligence is introduced. See [`ADR 0001`](docs/ADR/0001-langgraph-execution-engine.md) for the design rationale and [`docs/sprints/SPRINT_2.md`](docs/sprints/SPRINT_2.md) for the full ticket log.
 
-No business logic (real reasoning, real tool calls, persistence) has been implemented yet — that remains intentional. Sprint 3's scope is not yet planned; it'll be designed next, replacing mocked node logic with real implementations without changing the graph's structure.
+**Sprint 3 — AI Infrastructure: Complete**
+
+Delivered: a real LLM integrated cleanly via LiteLLM + OpenRouter (`app/llm/client.py`), prompt management (`app/prompts/`), and error handling — with exactly one node (Summarizer) now using a real LLM call. Planner and Retrieval remain mocked, and `app/graph/workflow.py` was never touched — concrete proof the orchestration architecture absorbs real implementations without changing. See [`ADR 0002`](docs/ADR/0002-ai-infrastructure-layer.md) for the design rationale and [`docs/sprints/SPRINT_3.md`](docs/sprints/SPRINT_3.md) for the full ticket log.
+
+Real tool calls (RSS, web search), Planner reasoning, persistence, and conversation history remain intentionally unbuilt. Sprint 4's scope is not yet planned.
 
 ---
 

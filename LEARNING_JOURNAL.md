@@ -443,3 +443,23 @@ def health(settings: Settings = Depends(get_settings)):
 **A real correction to something claimed in AI-005's discussion:** the error-handling test's logs showed LiteLLM attempted the call **3 times** (1 initial + our configured `num_retries=2`) before raising the authentication error — meaning it retried an invalid API key, a permanent failure, exactly as many times as a transient one. AI-005's discussion had assumed LiteLLM's `num_retries` was smart enough to skip retrying non-retryable errors like bad credentials; this is first-hand evidence that assumption doesn't hold for the simple `completion(..., num_retries=2)` usage implemented here — it retries blindly regardless of error type. **Flagging as a known limitation, not silently fixing it now:** a proper fix likely means checking LiteLLM's more advanced per-error retry-policy features (or a custom retry policy object), which is a reasonable candidate for a future hardening pass rather than scope-creeping Sprint 3's closing ticket.
 
 **Sprint 3 Exit Criteria: met**, with the one honest caveat above carried forward.
+
+---
+
+## Sprint 3 — Closeout Retrospective
+
+**Date:** 2026-07-20
+
+**Re-verified fresh on a clean `main`:** ran `build_graph().invoke(...)` again after pulling the merged AI-006 PR, got a clean, coherent real summary, and confirmed the same five-field state shape. Also checked `backend/pyproject.toml` (only `fastapi`, `langgraph`, `litellm`, `pydantic-settings`, `uvicorn` — nothing from the explicit Out of Scope list snuck in) and `git log -- backend/app/graph/workflow.py` — **exactly one commit in its entire history, ENGINE-007 from Sprint 2.** That's not an assumption or a claim taken on faith; it's direct evidence that six tickets of real AI integration work never needed to touch the orchestration engine's wiring, which was the whole premise ADR 0002 was written to test.
+
+**What Sprint 3 actually built:** `app/llm/client.py` (LiteLLM + OpenRouter behind one interface, `complete(prompt: str) -> str`), `app/prompts/summarizer.py` (versioned instructions separate from formatting), a real Summarizer node, and error handling that translates every LLM failure into one exception type (`LLMError`) instead of leaking LiteLLM/OpenRouter specifics.
+
+**The recurring pattern this sprint, more than any other so far: assumptions correcting themselves against real evidence, not staying assumptions.**
+- AI-001: assumed a specific free model name was current — it had been retired by the time of testing. Fixed by querying OpenRouter's live API instead of guessing again.
+- AI-003: assumed title/source was enough content to summarize — the LLM correctly said otherwise, which was a good sign, not a failure.
+- AI-005: assumed "model unavailable" was always a `NotFoundError` — a malformed model name surfaced `BadRequestError` instead.
+- AI-006: assumed LiteLLM's retry logic was smart enough to skip retrying permanent failures like a bad API key — log evidence showed it retried 3 times regardless of error type.
+
+None of these were caught by reasoning ahead of time — every one required actually running the code and reading what came back. Worth carrying into future sprints as a working principle, not just a one-off lesson: **when integrating a real external system, assume your first mental model of its behavior is incomplete, and verify against its actual behavior before writing it down as settled.**
+
+**Known limitations carried forward, not fixed in Sprint 3 (deliberately, to stay scoped):** LiteLLM's retry doesn't yet distinguish permanent from transient failures in our configuration; rate-limit handling was implemented but never triggered live; there's still no automated test suite (flagged back in Sprint 2, still true); Planner and Retrieval remain fully mocked, with real reasoning/RSS/web-search intentionally deferred to a future sprint.
