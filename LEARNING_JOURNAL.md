@@ -385,3 +385,15 @@ def health(settings: Settings = Depends(get_settings)):
 **Problem it solved:** before this, any code wanting an LLM response would need to know LiteLLM's `completion()` signature, the `model="openrouter/..."` string format, and how to unwrap its response object. Now that's sealed inside one file.
 
 **Verification:** ran a real completion through `get_llm_client().complete(...)` and got back an actual model response (plain string, confirmed via `isinstance`). Confirmed `get_llm_client()` caching behaves identically to `get_settings()` — called it twice, same object identity both times (`is`, not just `==`). Also confirmed via `grep` on the file's own imports — not just by assumption — that `client.py` imports nothing beyond `functools`, `litellm`, and `app.config.settings`: zero coupling to LangGraph, agents, or graph state, exactly as the ticket requires.
+
+### AI-003 — Prompt management
+
+**Date:** 2026-07-20
+
+**What was done:** `app/prompts/summarizer.py` — `SUMMARIZER_INSTRUCTIONS` (a module-level constant, the fixed instruction text) plus `build_summarizer_prompt(articles: list[dict]) -> str` (per-call formatting, inserting real article data).
+
+**Decision — constant + function, not one inline string:** separates the part you'd actually tune/version over time (`SUMMARIZER_INSTRUCTIONS`) from the part that just formats per-call data. Directly serves this ticket's named "prompt versioning" learning goal — the instructions are the one thing you'd expect to see change in `git log` over time, distinct from formatting logic that shouldn't.
+
+**A real, useful finding from verification:** ran the built prompt through the actual AI-002 `LLMClient` (not a hypothetical check) using Sprint 2's mock article shape (`{"title": "Mock Article", "source": "Mock RSS"}`). The model correctly replied that it didn't have enough information to summarize — which is the *right* behavior, not a bug: a title and source alone genuinely isn't enough content to summarize, and a well-behaved model saying so (rather than hallucinating a fake summary from nothing) is a good sign the prompt is working as intended. **Flagging forward:** this means once Retrieval becomes real (a future sprint), articles will need an actual body/content field, not just title/source — the mock shape from Sprint 2 won't be sufficient for AI-004's real Summarizer to produce a meaningful summary from mock data alone. Worth keeping in mind when AI-004 decides what mock article content to test against.
+
+**Verification:** confirmed `build_summarizer_prompt()` correctly interpolates article data into the expected format, then ran the actual output through the real LLM client end-to-end — an early integration check across AI-002 and AI-003 together, ahead of AI-004 wiring this into the graph.

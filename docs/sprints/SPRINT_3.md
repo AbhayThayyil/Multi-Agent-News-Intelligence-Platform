@@ -45,7 +45,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **AI-002 — Create an LLM service layer**
   New folder `app/llm/`, containing `client.py`. Initializes LiteLLM, exposes one clean interface, hides provider details. Must not know anything about LangGraph, Summarizer, or Planner. Learning goals: Dependency Injection, service abstraction, clean architecture.
 
-- [ ] **AI-003 — Prompt management**
+- [x] **AI-003 — Prompt management**
   Move prompts into `app/prompts/`, e.g. `summarizer.py`. The Summarizer must not contain a giant inline prompt. Learning goals: prompt versioning, maintainability, separation of concerns.
 
 - [ ] **AI-004 — Replace mock Summarizer**
