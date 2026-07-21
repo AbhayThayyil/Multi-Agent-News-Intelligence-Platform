@@ -48,7 +48,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **AI-003 — Prompt management**
   Move prompts into `app/prompts/`, e.g. `summarizer.py`. The Summarizer must not contain a giant inline prompt. Learning goals: prompt versioning, maintainability, separation of concerns.
 
-- [ ] **AI-004 — Replace mock Summarizer**
+- [x] **AI-004 — Replace mock Summarizer**
   Replace the hardcoded summary with a real LLM call. Input: `articles`. Output: `summary`. Planner and Retrieval stay mocked; graph structure stays identical (`Planner (Mock) → Retrieval (Mock) → Summarizer (LLM) → Response Composer → END`).
 
 - [ ] **AI-005 — LLM error handling**
