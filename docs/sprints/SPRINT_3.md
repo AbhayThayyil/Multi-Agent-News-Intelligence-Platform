@@ -51,7 +51,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **AI-004 — Replace mock Summarizer**
   Replace the hardcoded summary with a real LLM call. Input: `articles`. Output: `summary`. Planner and Retrieval stay mocked; graph structure stays identical (`Planner (Mock) → Retrieval (Mock) → Summarizer (LLM) → Response Composer → END`).
 
-- [ ] **AI-005 — LLM error handling**
+- [x] **AI-005 — LLM error handling**
   Handle timeout, invalid API key, rate limit, provider unavailable. Discussion required: should the graph fail, retry, or return partial results on each failure mode — this ticket is about understanding the trade-offs, not just writing `try/except`.
 
 - [ ] **AI-006 — End-to-end verification**

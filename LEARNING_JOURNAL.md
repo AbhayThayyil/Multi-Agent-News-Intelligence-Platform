@@ -409,3 +409,20 @@ def health(settings: Settings = Depends(get_settings)):
 **Verification (the one that mattered most):** ran `build_graph()` — completely untouched since Sprint 2 — end-to-end, and confirmed: Planner still returns its hardcoded plan, Retrieval still returns hardcoded (now richer) mock data, Summarizer produces a genuinely real, LLM-generated summary of that mock content, and Response Composer correctly threads it into the final response — all without a single line of `workflow.py` changing. This is the concrete proof of the architecture holding up under real replacement, not just a claim.
 
 **Observed model-output quirk (not a code bug):** the real response included a stray trailing fragment (`...reasoning benchmarks.parks`) — a generation artifact from this particular free model, not something in our code. Noted for AI-006's "verify summary quality" criterion rather than something to chase down now.
+
+### AI-005 — LLM error handling
+
+**Date:** 2026-07-20
+
+**Discussion, decided before implementing:** retry policy isn't one rule — it's per-error-type. Timeout and rate limit are transient (worth automatic retry); invalid API key and a genuinely nonexistent model are permanent (retrying wastes time on something retrying can never fix). LiteLLM already makes this judgment internally; our job is to configure it (`timeout=30`, `num_retries=2`), not reimplement it. Decided the graph should **fail loudly** rather than return partial results — Response Composer's job is formatting a *real* summary, and there's no API layer yet that would know how to sensibly display a degraded result, so building a partial-result path now would be unused abstraction.
+
+**What was done:** `app/llm/client.py` wraps the LiteLLM call in `try/except`, translating every LiteLLM/OpenRouter exception into our own `LLMError` — callers only ever need to catch one exception type, never a LiteLLM-specific one.
+
+**Verification — three of four failure modes triggered for real, not assumed:**
+- **Invalid key:** constructed a client with a fake key, confirmed `LLMError` raised and — via `isinstance()` — confirmed the real `litellm.AuthenticationError` never escapes to the caller.
+- **Model unavailable:** a bogus model string surfaced `litellm.BadRequestError`, not the `NotFoundError` I'd expected based on AI-001's retired-model experience (which *was* a `NotFoundError`). Real, first-hand evidence that "model unavailable" isn't one exception type — added an explicit `BadRequestError` branch once this showed up, rather than assuming my first guess covered it.
+- **Timeout:** monkey-patched a 0.001-second timeout for one call, confirmed `LLMError` raised with a clear message.
+- **Rate limit: not empirically triggered** — reliably forcing a real 429 means hammering the API with rapid requests, wasteful and unkind to a free tier. Implemented following the identical pattern as the three verified branches, but honestly flagging this one as code-reviewed, not proven live.
+- **Regression check:** confirmed the real success path (valid key, valid model) still works unchanged.
+
+**Problem it solved:** without this, any LLM failure would surface as a raw LiteLLM exception with LiteLLM-specific types and messages — a real leak of ADR 0002's "hide provider details" promise at exactly the moment (a failure) it matters most.
