@@ -426,3 +426,20 @@ def health(settings: Settings = Depends(get_settings)):
 - **Regression check:** confirmed the real success path (valid key, valid model) still works unchanged.
 
 **Problem it solved:** without this, any LLM failure would surface as a raw LiteLLM exception with LiteLLM-specific types and messages — a real leak of ADR 0002's "hide provider details" promise at exactly the moment (a failure) it matters most.
+
+### AI-006 — End-to-end verification
+
+**Date:** 2026-07-20
+
+**Gap found before verifying:** zero logging existed anywhere in the codebase — `grep` for `import logging`/`logger.` across `backend/app/` found nothing. Since this ticket explicitly asks to verify logging, added minimal logging to `app/llm/client.py` first (model called, success/failure, rough duration) so there was something real to check, rather than reporting a gap on the sprint's own closing ticket.
+
+**Verified all four dimensions through the real compiled graph** (`build_graph().invoke()`), not isolated pieces:
+
+1. **State evolution:** all five fields (`query`, `execution_plan`, `articles`, `summary`, `response`) accumulated correctly in order; `response.answer` matches `summary` exactly, confirming Response Composer still wires correctly with a real Summarizer in place.
+2. **Summary quality:** this run produced a clean, coherent summary with no artifacts — confirming AI-004's `.parks` glitch was one-off model variance (a real free model producing slightly different output run to run), not a systematic bug in our code.
+3. **Logging:** both our own log lines (`Calling LLM model=...`, `LLM call succeeded model=... duration=...`) and LiteLLM's own internal logging appeared correctly, including the `ERROR` line firing on the deliberate failure test below.
+4. **Error handling — through the full graph, not just the isolated client (new for this ticket):** monkey-patched the Summarizer's `get_llm_client()` to return a client with an invalid key, then called `graph.invoke()` directly. Confirmed `LLMError` propagated all the way out of `.invoke()` uncaught — exactly the "fail loudly" design decided in AI-005's discussion, now proven through the actual graph path, not just the client in isolation.
+
+**A real correction to something claimed in AI-005's discussion:** the error-handling test's logs showed LiteLLM attempted the call **3 times** (1 initial + our configured `num_retries=2`) before raising the authentication error — meaning it retried an invalid API key, a permanent failure, exactly as many times as a transient one. AI-005's discussion had assumed LiteLLM's `num_retries` was smart enough to skip retrying non-retryable errors like bad credentials; this is first-hand evidence that assumption doesn't hold for the simple `completion(..., num_retries=2)` usage implemented here — it retries blindly regardless of error type. **Flagging as a known limitation, not silently fixing it now:** a proper fix likely means checking LiteLLM's more advanced per-error retry-policy features (or a custom retry policy object), which is a reasonable candidate for a future hardening pass rather than scope-creeping Sprint 3's closing ticket.
+
+**Sprint 3 Exit Criteria: met**, with the one honest caveat above carried forward.
