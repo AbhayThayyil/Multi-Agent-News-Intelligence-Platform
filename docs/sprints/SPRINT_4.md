@@ -68,7 +68,7 @@ Retrieval stays deterministic throughout — only the implementation changes, no
 - [x] **TOOL-005 — Retry & timeout strategy**
   Architecture discussion first: if RSS times out, do we retry? How many times? At which layer (Tool, Service, middleware)? Then implement.
 
-- [ ] **TOOL-006 — Data validation**
+- [x] **TOOL-006 — Data validation**
   If RSS returns an entry with no date, a broken link, or no content — does Retrieval return it as-is? Does the Tool filter it? Does another layer validate it? This ticket is about ownership of that decision, not just code.
 
 - [ ] **TOOL-007 — End-to-end verification**
