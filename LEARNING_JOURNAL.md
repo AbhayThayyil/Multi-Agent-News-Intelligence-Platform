@@ -463,3 +463,19 @@ def health(settings: Settings = Depends(get_settings)):
 None of these were caught by reasoning ahead of time — every one required actually running the code and reading what came back. Worth carrying into future sprints as a working principle, not just a one-off lesson: **when integrating a real external system, assume your first mental model of its behavior is incomplete, and verify against its actual behavior before writing it down as settled.**
 
 **Known limitations carried forward, not fixed in Sprint 3 (deliberately, to stay scoped):** LiteLLM's retry doesn't yet distinguish permanent from transient failures in our configuration; rate-limit handling was implemented but never triggered live; there's still no automated test suite (flagged back in Sprint 2, still true); Planner and Retrieval remain fully mocked, with real reasoning/RSS/web-search intentionally deferred to a future sprint.
+
+---
+
+## Sprint 4 — Tool Infrastructure
+
+### TOOL-001 — Tool architecture review
+
+**Date:** 2026-07-27
+
+**What was done:** Answered four architecture questions before writing any Sprint 4 code, written up as [`ADR 0003`](../docs/ADR/0003-tool-architecture.md).
+
+**Core distinction, in my own words:** a Tool is code that does real I/O against something outside our process, and does so *without making any judgment call* — it doesn't decide whether/when to be called, and it doesn't decide what the result means. The instant code starts judging (is this good enough, which source should I use), it's stopped being a Tool and become a Service or an Agent. This is the same line Sprint 3 already drew for `LLMClient` (a Tool-like abstraction, even though it lives in `app/llm/` rather than `app/tools/` per ADR 0002's earlier reasoning) — ADR 0003 just makes the general principle explicit for the first time, ahead of building a second thing (RSS) that needs to follow it.
+
+**Why this matters concretely for Sprint 4:** RSS logic normalizes to `Article` objects *inside* the Tool (not in `retrieval.py`), and the Planner never learns RSS exists — both direct consequences of the same idea: nothing downstream of a Tool should ever need to know the specific external system's shape or even that it exists, only that "articles can be retrieved."
+
+**Problem it solved:** without this reviewed and written down first, TOOL-003/004 risked repeating the exact anti-pattern Sprint 3 was built to avoid — the RSS parser's provider-specific quirks (feed format, field names) leaking into Retrieval's own logic, and Retrieval becoming hard to swap for a different source later.
