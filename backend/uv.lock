@@ -174,6 +174,7 @@ dependencies = [
     { name = "langgraph" },
     { name = "litellm" },
     { name = "pydantic-settings" },
+    { name = "tenacity" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -184,6 +185,7 @@ requires-dist = [
     { name = "langgraph", specifier = ">=1.2.9" },
     { name = "litellm", specifier = ">=1.92.0" },
     { name = "pydantic-settings", specifier = ">=2.14.2" },
+    { name = "tenacity", specifier = ">=9.1.4" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.51.0" },
 ]
 
