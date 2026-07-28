@@ -519,3 +519,21 @@ None of these were caught by reasoning ahead of time — every one required actu
 **A real, honest finding from full end-to-end verification:** ran the complete graph against the live BBC feed (34 real articles) — it worked, `workflow.py` genuinely never changed (confirmed via `git diff`, zero output), but the summary quality was noticeably worse than earlier mock-based runs: several garbled fragments (`"Bruxost village"`, `"Booker Prize Bung longlist"`, a stray `"sig·systems"`). The free model clearly handles synthesizing one focused article much better than 34 unrelated real stories at once. Not something to fix in this ticket — filtering/ranking/deduplication are explicitly out of Sprint 4's scope — but worth naming honestly as a real limitation surfaced by using genuinely live data, rather than only reporting the happy path.
 
 **Verification:** direct call confirmed real, correctly-shaped article dicts (34 articles, `source` correctly overridden to `"BBC News"`); full graph invocation confirmed all five state fields populate correctly with live data, Planner's `execution_plan` unchanged (still mocked), and `git diff` on `workflow.py` showed zero changes.
+
+### TOOL-005 — Retry & timeout strategy
+
+**Date:** 2026-07-28
+
+**Discussion, decided before implementing:** same per-error-type judgment as AI-005, applied to HTTP. Timeouts/connection errors and HTTP 5xx are transient — worth retrying. HTTP 4xx (e.g. 404 — wrong/gone URL) and feed parse failures (`bozo`) are permanent — retrying accomplishes nothing, so they fail immediately instead. Retry logic lives inside `rss.py` (the Tool), matching ADR 0003 and AI-005's precedent — not in `retrieval.py`.
+
+**Decision — `tenacity`, not a hand-rolled retry loop:** unlike Sprint 3, where LiteLLM already had retry built in, `httpx`/`feedparser` have no built-in retry mechanism — this is a genuine need, not reaching for a library where one wasn't necessary. `tenacity` turned out to already be a transitive dependency (via `litellm`), so promoting it to direct cost nothing new to install.
+
+**What was done:** wrapped only the HTTP fetch (`_fetch_with_retry`, a separate method from parsing) in `@retry`, using a custom predicate (`_is_retryable`) since `httpx.HTTPStatusError` covers both 4xx and 5xx and needed distinguishing by status code, not just exception type. 3 attempts total, exponential backoff (1s → 2s → 4s, capped at 8s). Parsing/`bozo` checks stay entirely outside the retry scope — a malformed feed won't get a different result on a second try.
+
+**Verification — proved all four behaviors concretely, not just by code review:**
+1. Regression: real fetch against the live BBC feed still works.
+2. Monkey-patched `httpx.get` to fail twice with a simulated timeout then succeed — confirmed it actually retried and succeeded on attempt 3.
+3. Simulated a persistent 404 — confirmed it failed after **exactly 1 attempt**, no wasted retries on a permanent error.
+4. Simulated a persistent 503 — confirmed it retried the full 3 attempts before giving up, proving the retry budget is respected for genuinely transient-looking failures too.
+
+**Problem it solved:** before this, any network hiccup (a dropped packet, a momentarily slow server) would fail the entire graph on the first blip; now transient failures get a real second chance, while permanent ones (wrong URL, malformed feed) fail fast instead of wasting time on retries that could never succeed.
