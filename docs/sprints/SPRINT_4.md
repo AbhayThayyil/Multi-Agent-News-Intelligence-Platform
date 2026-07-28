@@ -56,7 +56,7 @@ Retrieval stays deterministic throughout — only the implementation changes, no
 - [x] **TOOL-001 — Tool architecture review**
   Answer before writing code: what makes something a Tool? Why isn't RSS inside Retrieval? Why shouldn't Planner know RSS exists? What is a Tool's responsibility? Deliverable: a short ADR explaining Tool architecture. See [`ADR 0003`](../ADR/0003-tool-architecture.md).
 
-- [ ] **TOOL-002 — Design the Article domain model**
+- [x] **TOOL-002 — Design the Article domain model**
   Replace the current `[{"title": "..."}]` shape with a real internal representation (`title`, `content`, `published_at`, `source`, `url`). Decide together: Pydantic model, dataclass, or dict.
 
 - [ ] **TOOL-003 — Build the RSS Tool**

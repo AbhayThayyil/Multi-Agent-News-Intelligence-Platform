@@ -479,3 +479,17 @@ None of these were caught by reasoning ahead of time — every one required actu
 **Why this matters concretely for Sprint 4:** RSS logic normalizes to `Article` objects *inside* the Tool (not in `retrieval.py`), and the Planner never learns RSS exists — both direct consequences of the same idea: nothing downstream of a Tool should ever need to know the specific external system's shape or even that it exists, only that "articles can be retrieved."
 
 **Problem it solved:** without this reviewed and written down first, TOOL-003/004 risked repeating the exact anti-pattern Sprint 3 was built to avoid — the RSS parser's provider-specific quirks (feed format, field names) leaking into Retrieval's own logic, and Retrieval becoming hard to swap for a different source later.
+
+### TOOL-002 — Design the Article domain model
+
+**Date:** 2026-07-27
+
+**What was done:** `app/schemas/article.py` — `Article(BaseModel)` with `title`/`source` required, `content`/`published_at`/`url` optional (`| None = None`).
+
+**Decision — Pydantic over dataclass or dict:** Article represents data crossing a trust boundary (RSS is external, untrusted, and messy — TOOL-006 exists specifically because entries can be missing dates/content/links). A `dataclass` gives structure with zero enforcement; a `dict` gives neither. Pydantic validates at the exact point external data enters the system, and it was already a dependency (via `pydantic-settings`/`fastapi`) — no new cost. Also matches the existing pattern (`Settings`, `HealthResponse`) rather than introducing a third convention for structured data.
+
+**Decision — which fields are optional:** deliberately did *not* make every field required. Real RSS feeds legitimately omit `content`, `published_at`, or `url` sometimes — forcing them required would just mean validation failures on realistic data. The *policy* question (should Retrieval accept an article missing content, should something filter it) is left to TOOL-006, not baked into the model's shape.
+
+**Decision — `app/schemas/`, not `app/models/`:** matches `CLAUDE.md`'s already-documented purpose for `schemas/` ("Pydantic contracts") and where `HealthResponse` already lives; `app/models/` has no defined purpose yet and often implies DB-mapped ORM classes elsewhere, which Article isn't.
+
+**Verification — confirmed real validation, not just construction:** built a fully-populated `Article`, a minimal one (confirming optional fields default to `None`), then deliberately fed it a malformed date string and a missing required field — both correctly raised `ValidationError`. Bonus finding: Pydantic didn't just validate the ISO date string, it auto-parsed it into a real `datetime` object.
