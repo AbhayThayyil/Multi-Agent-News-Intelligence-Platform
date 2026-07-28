@@ -557,3 +557,18 @@ None of these were caught by reasoning ahead of time — every one required actu
 2. `RSSTool.fetch()` against a synthetic mix of entries (good/titleless/bad-URL): confirmed exactly the 2 malformed ones were skipped with warning logs, the 2 good ones kept.
 3. `retrieval_node` against synthetic articles with/without content: confirmed only the one with real content survived, both `None` and empty-string content correctly dropped.
 4. Full graph against the real live BBC feed: 33/33 articles usable this run (none needed dropping), summary produced successfully, `url` confirmed to come out as a plain `str` in the final dict (not a leaked `HttpUrl` object), and `workflow.py` confirmed untouched via `git diff`.
+
+### TOOL-007 — End-to-end verification
+
+**Date:** 2026-07-29
+
+**Verified fresh, mirroring AI-006's role in Sprint 3 — one deliberate closing pass, not trusting the sum of individual ticket verifications:**
+
+1. **`workflow.py`'s entire git history across *both* Sprint 3 and Sprint 4** is still the single `ENGINE-007` commit from Sprint 2 — 13 tickets of real AI and Tool integration, zero changes to the graph's wiring.
+2. **Dependencies stayed exactly in scope:** `fastapi`, `feedparser`, `langgraph`, `litellm`, `pydantic-settings`, `tenacity`, `uvicorn` — nothing from Sprint 4's explicit out-of-scope list (no Google News client, no ranking/dedup library, no persistence driver).
+3. **Error propagation through the full graph — new for this ticket, not covered by TOOL-005's isolated Tool test:** pointed `retrieval_node` at a genuinely nonexistent domain and confirmed `RSSToolError` propagates uncaught out of `graph.invoke()` itself — the same "fail loudly" design AI-006 proved for LLM errors, now proven for the Tool infrastructure path too.
+4. **Full state evolution** against the real live feed: all five `GraphState` fields correct, `execution_plan` confirming Planner is still genuinely mocked, all 33 returned articles have content (the TOOL-006 filter holding), and `response.answer` matching `summary` exactly.
+
+**One more honest quality finding, not hidden:** the summary contained a stray Devanagari word (`"उल्लेखित"`, roughly "mentioned") injected mid-sentence — another real generation artifact from this free model synthesizing many diverse real stories, same category as AI-004's `.parks` and TOOL-004's "Bruxost village" glitches. A recurring, now well-established pattern across both Sprint 3 and Sprint 4: **quality degrades when this particular free model has to synthesize many unrelated real stories at once** — worth carrying forward as a known, named limitation rather than three separate one-off surprises.
+
+**Sprint 4 Exit Criteria: met.** All TOOL-001–007 tickets complete.

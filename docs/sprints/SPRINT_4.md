@@ -71,7 +71,7 @@ Retrieval stays deterministic throughout — only the implementation changes, no
 - [x] **TOOL-006 — Data validation**
   If RSS returns an entry with no date, a broken link, or no content — does Retrieval return it as-is? Does the Tool filter it? Does another layer validate it? This ticket is about ownership of that decision, not just code.
 
-- [ ] **TOOL-007 — End-to-end verification**
+- [x] **TOOL-007 — End-to-end verification**
   Graph becomes `Planner (Mock) → Retrieval (Real) → RSS Tool → RSS Feed → Articles → Summarizer (Real) → Response Composer`. The application is now consuming live data. No graph changes, no Planner changes.
 
 ---
