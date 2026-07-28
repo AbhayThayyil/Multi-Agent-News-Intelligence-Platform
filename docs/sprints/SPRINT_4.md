@@ -1,10 +1,10 @@
 # Sprint 4 — Tool Infrastructure
 
-**Status:** Design approved (via pre-sprint design review) — awaiting TOOL-001.
+**Status:** Design approved (via pre-sprint design review) — TOOL-001 complete, awaiting TOOL-002.
 
 Goal: introduce the first real external tool into the system and learn how AI systems interact with the outside world, **without changing the graph or the Planner**. This sprint is not about planning, and not about RAG — it's about designing Tools correctly.
 
-Reference: [`PROJECT_CONTEXT.md`](../../PROJECT_CONTEXT.md), [`CLAUDE.md`](../../CLAUDE.md), [`ADR 0002 — AI Infrastructure Layer`](../ADR/0002-ai-infrastructure-layer.md) (the precedent this sprint's Tool design follows). TOOL-001 will produce its own ADR (Tool architecture) as its deliverable.
+Reference: [`PROJECT_CONTEXT.md`](../../PROJECT_CONTEXT.md), [`CLAUDE.md`](../../CLAUDE.md), [`ADR 0002 — AI Infrastructure Layer`](../ADR/0002-ai-infrastructure-layer.md) (the precedent this sprint's Tool design follows), [`ADR 0003 — Tool Architecture`](../ADR/0003-tool-architecture.md) (TOOL-001's deliverable).
 
 A ticket is only checked off once the implementation works, follows the layering/engineering principles in `CLAUDE.md`, and can be explained line-by-line (per the project's Definition of Done).
 
@@ -53,8 +53,8 @@ Retrieval stays deterministic throughout — only the implementation changes, no
 
 ## Tickets
 
-- [ ] **TOOL-001 — Tool architecture review**
-  Answer before writing code: what makes something a Tool? Why isn't RSS inside Retrieval? Why shouldn't Planner know RSS exists? What is a Tool's responsibility? Deliverable: a short ADR explaining Tool architecture.
+- [x] **TOOL-001 — Tool architecture review**
+  Answer before writing code: what makes something a Tool? Why isn't RSS inside Retrieval? Why shouldn't Planner know RSS exists? What is a Tool's responsibility? Deliverable: a short ADR explaining Tool architecture. See [`ADR 0003`](../ADR/0003-tool-architecture.md).
 
 - [ ] **TOOL-002 — Design the Article domain model**
   Replace the current `[{"title": "..."}]` shape with a real internal representation (`title`, `content`, `published_at`, `source`, `url`). Decide together: Pydantic model, dataclass, or dict.
