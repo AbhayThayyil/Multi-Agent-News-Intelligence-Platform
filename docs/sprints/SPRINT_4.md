@@ -62,7 +62,7 @@ Retrieval stays deterministic throughout — only the implementation changes, no
 - [x] **TOOL-003 — Build the RSS Tool**
   New file `app/tools/rss.py`. Responsibilities: fetch RSS, parse the feed, normalize output to `Article` objects. Must **not** summarize, filter, think, or rank — pure retrieval.
 
-- [ ] **TOOL-004 — Replace mock Retrieval**
+- [x] **TOOL-004 — Replace mock Retrieval**
   Swap `return MOCK_ARTICLES` for `rss_tool.fetch() → articles`. Planner remains mocked; Summarizer remains real.
 
 - [ ] **TOOL-005 — Retry & timeout strategy**
