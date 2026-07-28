@@ -1,17 +1,9 @@
 from app.graph.state import GraphState
+from app.tools.base import NewsSourceTool
+from app.tools.rss import get_rss_tool
 
 
 def retrieval_node(state: GraphState) -> GraphState:
-    return {
-        "articles": [
-            {
-                "title": "Mock Article",
-                "source": "Mock RSS",
-                "content": (
-                    "Researchers announced a new open-weight language model "
-                    "today, claiming improved reasoning benchmarks over prior "
-                    "versions while requiring less compute to run."
-                ),
-            },
-        ]
-    }
+    tool: NewsSourceTool = get_rss_tool()
+    articles = tool.fetch()
+    return {"articles": [article.model_dump() for article in articles]}

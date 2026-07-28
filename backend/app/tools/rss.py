@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
+from functools import lru_cache
 
 import feedparser
 import httpx
 
+from app.config.settings import get_settings
 from app.schemas.article import Article
 
 
@@ -43,3 +45,9 @@ class RSSTool:
             source=self._source,
             url=entry.get("link"),
         )
+
+
+@lru_cache
+def get_rss_tool() -> RSSTool:
+    settings = get_settings()
+    return RSSTool(feed_url=settings.rss_feed_url, source=settings.rss_source_name)
