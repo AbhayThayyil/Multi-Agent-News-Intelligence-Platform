@@ -59,7 +59,7 @@ Retrieval stays deterministic throughout — only the implementation changes, no
 - [x] **TOOL-002 — Design the Article domain model**
   Replace the current `[{"title": "..."}]` shape with a real internal representation (`title`, `content`, `published_at`, `source`, `url`). Decide together: Pydantic model, dataclass, or dict.
 
-- [ ] **TOOL-003 — Build the RSS Tool**
+- [x] **TOOL-003 — Build the RSS Tool**
   New file `app/tools/rss.py`. Responsibilities: fetch RSS, parse the feed, normalize output to `Article` objects. Must **not** summarize, filter, think, or rank — pure retrieval.
 
 - [ ] **TOOL-004 — Replace mock Retrieval**

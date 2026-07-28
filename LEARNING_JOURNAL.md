@@ -493,3 +493,15 @@ None of these were caught by reasoning ahead of time — every one required actu
 **Decision — `app/schemas/`, not `app/models/`:** matches `CLAUDE.md`'s already-documented purpose for `schemas/` ("Pydantic contracts") and where `HealthResponse` already lives; `app/models/` has no defined purpose yet and often implies DB-mapped ORM classes elsewhere, which Article isn't.
 
 **Verification — confirmed real validation, not just construction:** built a fully-populated `Article`, a minimal one (confirming optional fields default to `None`), then deliberately fed it a malformed date string and a missing required field — both correctly raised `ValidationError`. Bonus finding: Pydantic didn't just validate the ISO date string, it auto-parsed it into a real `datetime` object.
+
+### TOOL-003 — Build the RSS Tool
+
+**Date:** 2026-07-28
+
+**What was done:** `app/tools/rss.py` — `RSSTool` (constructor-injected `feed_url`/`source`, matching `LLMClient`'s shape), with `fetch() -> list[Article]` splitting HTTP fetching (`httpx`) from feed parsing (`feedparser`), normalizing every entry into an `Article` before returning. Errors wrapped in a new `RSSToolError`, mirroring `LLMError`.
+
+**Gotcha found while verifying, before writing the final module — real, not hypothetical:** the very first test call against BBC's feed URL returned **zero entries**, which looked like a parsing bug. Root cause: `httpx` doesn't follow redirects by default, and BBC's `http://` feed URL 302-redirects to `https://`. The first request silently got a redirect response with no RSS content in it, and `feedparser` correctly found zero entries in *that*. Confirmed the diagnosis directly (checked the 302 status and `Location` header) before fixing it — `follow_redirects=True` is now a deliberate, evidence-based choice, not a guess, and worth remembering as a general httpx gotcha for any future tool that fetches URLs.
+
+**Decision — fetch/parse split, not `feedparser.parse(url)` doing both:** `feedparser.parse()` can take a URL directly, but its internal fetching is harder to control (no clean timeout parameter, `urllib`-based). Splitting so `httpx` does the fetch means real timeout control now, and gives TOOL-005 a natural place to add retry logic — wrapping the `httpx.get()` call specifically, not the whole fetch-and-parse pipeline.
+
+**Verification — proved the "pure retrieval, no judgment" requirement from ADR 0003, not just asserted it:** fetched the real BBC feed (34 entries), and separately parsed the same raw feed content directly with `feedparser` to get its raw entry count — **confirmed the two counts matched exactly**, concrete evidence nothing is being filtered or dropped. Also triggered both error paths for real: a nonexistent domain (network failure → `RSSToolError`) and a non-RSS URL (`example.com`'s HTML → `feedparser`'s `bozo` flag catches it → `RSSToolError`).
