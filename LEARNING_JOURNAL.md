@@ -537,3 +537,23 @@ None of these were caught by reasoning ahead of time — every one required actu
 4. Simulated a persistent 503 — confirmed it retried the full 3 attempts before giving up, proving the retry budget is respected for genuinely transient-looking failures too.
 
 **Problem it solved:** before this, any network hiccup (a dropped packet, a momentarily slow server) would fail the entire graph on the first blip; now transient failures get a real second chance, while permanent ones (wrong URL, malformed feed) fail fast instead of wasting time on retries that could never succeed.
+
+### TOOL-006 — Data validation
+
+**Date:** 2026-07-29
+
+**Discussion, decided before implementing — the ownership model:** three layers, each owning a different question. The `Article` model owns *structural* validity (is this even well-formed). The RSS Tool owns *construction failures* (what happens when one entry can't become a valid `Article`). Retrieval Service owns *usefulness* (is a structurally-valid-but-sparse article actually worth keeping) — deliberately not the Tool's call, per ADR 0003 ("Tools never filter/judge").
+
+**A real gap found and fixed, same class of bug as AI-001's API key loophole:** `Article.title: str` had no `min_length`, so an empty string satisfied it silently — a missing title would become `""`, not a validation error. Fixed with `Field(min_length=1)`, identical fix to `openrouter_api_key`'s.
+
+**What was done:**
+- `Article.title` now requires at least 1 character; `Article.url` upgraded from plain `str | None` to `HttpUrl | None` — catches malformed URLs for free, with zero network cost (format only, never checks reachability — verifying a link is actually *live* would mean a second request per article, slow and unreliable, and not really "retrieval").
+- `RSSTool.fetch()` now builds articles in a loop instead of a list comprehension, catching `pydantic.ValidationError` per entry — one malformed entry gets skipped and logged as a warning, the rest of the fetch still succeeds. Also normalizes a blank `<link>` tag to `None` rather than letting it hit `HttpUrl` validation and skip an otherwise-good article over nothing.
+- `retrieval_node` now drops articles with no `content` before returning — the "usefulness" judgment call, correctly placed in the Service layer, not the Tool.
+- Switched `article.model_dump()` to `article.model_dump(mode="json")` — necessary once `url` became `HttpUrl` (a Pydantic-specific type); `mode="json"` serializes it back to a plain string so downstream dict consumers see exactly what they did before.
+
+**Verification, each layer tested in isolation before the full regression:**
+1. `Article` directly: empty title rejected, malformed URL rejected, valid URL accepted and typed as `HttpUrl`, missing URL still fine (optional).
+2. `RSSTool.fetch()` against a synthetic mix of entries (good/titleless/bad-URL): confirmed exactly the 2 malformed ones were skipped with warning logs, the 2 good ones kept.
+3. `retrieval_node` against synthetic articles with/without content: confirmed only the one with real content survived, both `None` and empty-string content correctly dropped.
+4. Full graph against the real live BBC feed: 33/33 articles usable this run (none needed dropping), summary produced successfully, `url` confirmed to come out as a plain `str` in the final dict (not a leaked `HttpUrl` object), and `workflow.py` confirmed untouched via `git diff`.

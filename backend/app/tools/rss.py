@@ -4,6 +4,7 @@ from functools import lru_cache
 
 import feedparser
 import httpx
+from pydantic import ValidationError
 from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
 
 from app.config.settings import get_settings
@@ -51,8 +52,20 @@ class RSSTool:
                 f"Failed to parse RSS feed '{self._feed_url}': {parsed.bozo_exception}"
             )
 
-        logger.info("RSS fetch succeeded: %s entries from %s", len(parsed.entries), self._feed_url)
-        return [self._to_article(entry) for entry in parsed.entries]
+        articles = []
+        for entry in parsed.entries:
+            try:
+                articles.append(self._to_article(entry))
+            except ValidationError as e:
+                logger.warning("Skipping malformed RSS entry from %s: %s", self._feed_url, e)
+
+        logger.info(
+            "RSS fetch succeeded: %s of %s entries usable from %s",
+            len(articles),
+            len(parsed.entries),
+            self._feed_url,
+        )
+        return articles
 
     @retry(
         retry=retry_if_exception(_is_retryable),
@@ -75,7 +88,7 @@ class RSSTool:
             content=entry.get("summary"),
             published_at=published_at,
             source=self._source,
-            url=entry.get("link"),
+            url=entry.get("link") or None,
         )
 
 
