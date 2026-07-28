@@ -209,7 +209,11 @@ Delivered: a real LangGraph workflow (`START → Planner → Retrieval → Summa
 
 Delivered: a real LLM integrated cleanly via LiteLLM + OpenRouter (`app/llm/client.py`), prompt management (`app/prompts/`), and error handling — with exactly one node (Summarizer) now using a real LLM call. Planner and Retrieval remain mocked, and `app/graph/workflow.py` was never touched — concrete proof the orchestration architecture absorbs real implementations without changing. See [`ADR 0002`](docs/ADR/0002-ai-infrastructure-layer.md) for the design rationale and [`docs/sprints/SPRINT_3.md`](docs/sprints/SPRINT_3.md) for the full ticket log.
 
-Real tool calls (RSS, web search), Planner reasoning, persistence, and conversation history remain intentionally unbuilt. Sprint 4's scope is not yet planned.
+**Sprint 4 — Tool Infrastructure: Complete**
+
+Delivered: the first real external Tool (`app/tools/rss.py`), a normalized `Article` domain model with real validation, retry/timeout handling built on `tenacity`, and Retrieval now calling live RSS data instead of mocks. Planner remains mocked and `app/graph/workflow.py` was never touched across either Sprint 3 or Sprint 4 — the orchestration architecture absorbed two full rounds of real implementation work unchanged. See [`ADR 0003`](docs/ADR/0003-tool-architecture.md) for the Tool architecture rationale and [`docs/sprints/SPRINT_4.md`](docs/sprints/SPRINT_4.md) for the full ticket log.
+
+Planner reasoning, additional tools (web search, etc.), persistence, and conversation history remain intentionally unbuilt. Sprint 5's scope is not yet planned.
 
 ---
 

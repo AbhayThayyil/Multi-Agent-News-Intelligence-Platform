@@ -1,6 +1,6 @@
 # Sprint 4 — Tool Infrastructure
 
-**Status:** Design approved (via pre-sprint design review) — TOOL-001 complete, awaiting TOOL-002.
+**Status:** Complete — all tickets (TOOL-001–007) implemented and verified; Sprint Exit Criteria confirmed end-to-end on a clean `main` (2026-07-29). `app/graph/workflow.py`'s entire history across both Sprint 3 and Sprint 4 remains the single commit from Sprint 2's ENGINE-007.
 
 Goal: introduce the first real external tool into the system and learn how AI systems interact with the outside world, **without changing the graph or the Planner**. This sprint is not about planning, and not about RAG — it's about designing Tools correctly.
 

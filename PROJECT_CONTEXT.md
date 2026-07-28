@@ -344,11 +344,11 @@ Goal: introduce a real LLM into the system in a clean, production-ready way, wit
 
 **Status:** Complete. All tickets implemented and verified; re-confirmed end-to-end on a clean `main` — `app/graph/workflow.py` was never touched during this sprint (its entire git history is one commit, from Sprint 2), concrete proof ADR 0002's premise held. One known limitation carried forward: LiteLLM's configured retry (`num_retries=2`) retries permanent failures (e.g. an invalid API key) the same as transient ones — a candidate for a future hardening pass, not fixed in Sprint 3.
 
-## Sprint 4 — Tool Infrastructure
+## Sprint 4 — Tool Infrastructure (Complete)
 
-Goal: introduce the first real external tool (RSS) into the system, without changing the graph or the Planner. Retrieval stays deterministic — only its implementation changes, from mocked to a real Tool call. See [`docs/sprints/SPRINT_4.md`](docs/sprints/SPRINT_4.md) for the ticket breakdown (TOOL-001–007); TOOL-001 itself will produce a Tool Architecture ADR as its deliverable.
+Goal: introduce the first real external tool (RSS) into the system, without changing the graph or the Planner. Retrieval stays deterministic — only its implementation changes, from mocked to a real Tool call. See [`ADR 0003`](docs/ADR/0003-tool-architecture.md) for the Tool architecture rationale and [`docs/sprints/SPRINT_4.md`](docs/sprints/SPRINT_4.md) for the ticket breakdown (TOOL-001–007).
 
-**Status:** Design approved via pre-sprint design review — awaiting TOOL-001.
+**Status:** Complete. All tickets implemented and verified; re-confirmed end-to-end on a clean `main` — `app/graph/workflow.py`'s entire history across Sprint 3 *and* Sprint 4 remains the single commit from Sprint 2's ENGINE-007. Retrieval now calls a real RSS Tool with retry/timeout handling and data validation; Planner and Summarizer's LLM integration are unaffected. One known limitation carried forward: this free model's summary quality degrades noticeably when synthesizing many unrelated real stories at once (a recurring pattern across both Sprint 3 and 4), alongside Sprint 3's carried-forward retry-policy limitation and the still-missing automated test suite. Sprint 5 is not yet planned.
 
 ---
 

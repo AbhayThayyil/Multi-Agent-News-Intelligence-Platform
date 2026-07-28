@@ -572,3 +572,20 @@ None of these were caught by reasoning ahead of time — every one required actu
 **One more honest quality finding, not hidden:** the summary contained a stray Devanagari word (`"उल्लेखित"`, roughly "mentioned") injected mid-sentence — another real generation artifact from this free model synthesizing many diverse real stories, same category as AI-004's `.parks` and TOOL-004's "Bruxost village" glitches. A recurring, now well-established pattern across both Sprint 3 and Sprint 4: **quality degrades when this particular free model has to synthesize many unrelated real stories at once** — worth carrying forward as a known, named limitation rather than three separate one-off surprises.
 
 **Sprint 4 Exit Criteria: met.** All TOOL-001–007 tickets complete.
+
+---
+
+## Sprint 4 — Closeout Retrospective
+
+**Date:** 2026-07-29
+
+**Re-verified fresh on a clean `main`:** ran `build_graph().invoke(...)` again after pulling the merged TOOL-007 PR — real BBC feed, 33 usable articles, coherent summary, all Exit Criteria fields present. Re-confirmed `git log -- backend/app/graph/workflow.py` shows exactly one commit (`ENGINE-007`, Sprint 2) across **both** Sprint 3 and Sprint 4 combined — 13 tickets of real AI and Tool integration, zero changes to the orchestration engine's wiring. Dependencies (`fastapi`, `feedparser`, `langgraph`, `litellm`, `pydantic-settings`, `tenacity`, `uvicorn`) stayed exactly within the sprint's declared scope.
+
+**What Sprint 4 actually built:** `ADR 0003` (Tool architecture — what makes something a Tool, why RSS isn't inside Retrieval, why Planner doesn't know it exists), a real `Article` domain model with genuine validation (not just structure), `RSSTool` with retry/timeout handling via `tenacity`, and `retrieval_node` now calling live data instead of returning mocks — all without `app/graph/workflow.py` ever changing.
+
+**The recurring pattern this sprint, continuing Sprint 3's theme:** real, first-hand corrections that only surfaced by running the code, not by reasoning ahead of time.
+- TOOL-003: assumed BBC's feed URL would just work — `httpx` doesn't follow redirects by default, and the URL silently returned zero entries until this was caught and fixed.
+- TOOL-006: found the *exact same class of bug* as Sprint 3's `openrouter_api_key` gap — `Article.title: str` accepted an empty string silently, requiring the identical `min_length=1` fix.
+- TOOL-004/006/007: real, diverse news data repeatedly exposed summary-quality degradation (`.parks`, "Bruxost village", a stray Devanagari word) that mock data never could have surfaced, since mock articles were always small and focused.
+
+**Known limitations carried forward, not fixed in Sprint 4 (deliberately, to stay scoped):** the free LLM's summary quality degrades when synthesizing many unrelated real stories at once — a real, named limitation now, not three separate surprises. LiteLLM's retry still doesn't distinguish permanent from transient failures (Sprint 3's finding, unchanged). There's still no automated test suite (flagged since Sprint 2). No second news source exists yet to actually prove the `NewsSourceTool` Protocol's swappability claim — it's designed for that, but untested against a real second implementation. Article count per fetch isn't capped or ranked — Retrieval currently passes everything usable to the Summarizer regardless of volume, which is *why* the quality-degradation pattern above exists; deliberately not fixed here since ranking/filtering-by-relevance is explicitly out of Sprint 4's scope.
