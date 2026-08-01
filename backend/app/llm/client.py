@@ -29,9 +29,9 @@ class LLMClient:
         self._api_key = api_key
         self._model = model
 
-    def complete(self, prompt: str) -> str:
+    def complete(self, prompt: str, json_mode: bool = False) -> str:
         started_at = time.monotonic()
-        logger.info("Calling LLM model=%s", self._model)
+        logger.info("Calling LLM model=%s json_mode=%s", self._model, json_mode)
         try:
             response = completion(
                 model=f"openrouter/{self._model}",
@@ -39,6 +39,7 @@ class LLMClient:
                 messages=[{"role": "user", "content": prompt}],
                 timeout=30,
                 num_retries=2,
+                response_format={"type": "json_object"} if json_mode else None,
             )
         except AuthenticationError as e:
             logger.error("LLM call failed: invalid API key")

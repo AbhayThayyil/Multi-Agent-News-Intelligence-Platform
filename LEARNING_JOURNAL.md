@@ -619,3 +619,23 @@ None of these were caught by reasoning ahead of time — every one required actu
 **Decision — upgrading `GraphState.execution_plan`'s type, unlike `articles`:** `articles` stayed `list[dict]` in TOOL-004 specifically to avoid rippling into `summarizer.py`/`response_composer.py`, which already consumed it via dict access. Checked here first: **nothing currently reads `execution_plan`'s contents at all** (Retrieval/Summarizer never touch it, matching the established "don't fake-read unused fields" pattern) — so there was no ripple to avoid, and PLAN-005 is about to need real structured access (`.requires_timeline`) for routing. Upgraded the type now rather than deferring.
 
 **Verification:** confirmed all three `Literal`/`extra="forbid"` constraints reject invalid values (bad `intent`, bad `response_style`, unexpected extra field) while defaults apply correctly for a minimal valid plan. Then ran the full graph end-to-end and confirmed `execution_plan` flows through as a real typed `ExecutionPlan` object, not a raw dict or list — regression-free.
+
+### PLAN-003 — Build the real Planner
+
+**Date:** 2026-07-29
+
+**What was done:** `app/prompts/planner.py` (instructions + `build_planner_prompt(query)`, matching the Summarizer's constant+function pattern from AI-003). `LLMClient.complete()` extended with an optional `json_mode: bool = False` parameter, passing `response_format={"type": "json_object"}` to LiteLLM when set — backward-compatible, Summarizer's existing call site untouched. `planner_node` rewritten: real LLM call → `json.loads()` → `ExecutionPlan(**parsed)`. Deliberately happy-path only — no error handling yet, matching AI-004's precedent (build the real call first, AI-005 layered error handling after; PLAN-004 is next here).
+
+**Verified `json_mode` live, not assumed:** requested a raw completion with `json_mode=True` and got back clean JSON (`'{"intent":"timeline","requires_timeline":true,"response_style":"neutral"}'`) — no markdown fences, no extra commentary, correctly classifying "Show me a timeline of the AI industry this year" as a timeline request on the first try. This specific free model (`openai/gpt-oss-20b:free`) does honor `response_format`.
+
+**Verified actual reasoning quality across diverse real queries**, not just one lucky case:
+- "Summarize the latest AI news" → `summary`/neutral
+- "What is happening with NVIDIA lately" → `summary`/casual
+- "Give me a casual rundown of tech news" → `summary`/casual
+- "Show me a chronological history of OpenAI" → `timeline`/`True`/neutral
+
+All four correct — the model picked up both the intent distinction (timeline vs. summary) and informal-phrasing cues for `response_style`, without either being spelled out in examples in the prompt.
+
+**Problem it solved:** the Planner now genuinely reasons about user intent instead of returning a hardcoded plan — the first real "understand what the user wants" capability in the whole system. Note this doesn't change routing *yet* — `workflow.py` still runs the same fixed path regardless of the plan's contents; PLAN-005 is what makes the graph actually act on `requires_timeline`.
+
+**Full graph regression:** confirmed end-to-end with the real Planner wired in — Planner call succeeded in 4.86s, correctly threaded into the existing Retrieval → Summarizer → Response Composer path, no regressions.

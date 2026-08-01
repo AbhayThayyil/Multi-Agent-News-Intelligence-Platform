@@ -56,7 +56,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **PLAN-002 — Design the execution plan schema**
   Replace the hardcoded `execution_plan = ["retrieve", "summarize"]` list with a typed model. See the design note above for the proposed minimal shape — finalize at this ticket.
 
-- [ ] **PLAN-003 — Build the real Planner**
+- [x] **PLAN-003 — Build the real Planner**
   Replace the mock return with `User Query → Planner Prompt → LLM → Structured Execution Plan`. The Planner only outputs the plan — it never executes it.
 
 - [ ] **PLAN-004 — Structured output validation**
