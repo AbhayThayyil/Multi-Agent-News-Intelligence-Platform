@@ -1,12 +1,12 @@
 # Sprint 5 — Intelligent Planning
 
-**Status:** Design approved (via pre-sprint design review) — awaiting PLAN-001.
+**Status:** Design approved (via pre-sprint design review) — PLAN-001 complete, awaiting PLAN-002.
 
 Goal: replace the mocked Planner with a real reasoning node that produces a structured execution plan, and let the graph route dynamically based on it. This is the sprint that turns an AI workflow into an **agentic** one — the workflow starts adapting to what the user actually asked for, instead of always doing the same fixed sequence.
 
 Not in scope: Timeline (real), Trend Analysis, Fact Checking. This sprint teaches the system how to *think about* the workflow, not adds new analysis capabilities.
 
-Reference: [`PROJECT_CONTEXT.md`](../../PROJECT_CONTEXT.md), [`CLAUDE.md`](../../CLAUDE.md), [`ADR 0001`](../ADR/0001-langgraph-execution-engine.md) (conditional edges were named as a future capability there, back in Sprint 2 — this is that future). PLAN-001 will produce its own ADR (Planner responsibilities) as its deliverable.
+Reference: [`PROJECT_CONTEXT.md`](../../PROJECT_CONTEXT.md), [`CLAUDE.md`](../../CLAUDE.md), [`ADR 0001`](../ADR/0001-langgraph-execution-engine.md) (conditional edges were named as a future capability there, back in Sprint 2 — this is that future), [`ADR 0004 — Planner Responsibilities`](../ADR/0004-planner-responsibilities.md) (PLAN-001's deliverable).
 
 A ticket is only checked off once the implementation works, follows the layering/engineering principles in `CLAUDE.md`, and can be explained line-by-line (per the project's Definition of Done).
 
@@ -50,8 +50,8 @@ By the end of this sprint, you should be able to explain:
 
 ## Tickets
 
-- [ ] **PLAN-001 — Planner design review**
-  Answer before writing code: what is a Planner? What decisions belong to it, and which must never belong to it? Why doesn't it know RSS exists? Why doesn't it know LiteLLM exists? Deliverable: an ADR explaining Planner responsibilities.
+- [x] **PLAN-001 — Planner design review**
+  Answer before writing code: what is a Planner? What decisions belong to it, and which must never belong to it? Why doesn't it know RSS exists? Why doesn't it know LiteLLM exists? Deliverable: an ADR explaining Planner responsibilities. See [`ADR 0004`](../ADR/0004-planner-responsibilities.md).
 
 - [ ] **PLAN-002 — Design the execution plan schema**
   Replace the hardcoded `execution_plan = ["retrieve", "summarize"]` list with a typed model. See the design note above for the proposed minimal shape — finalize at this ticket.
