@@ -589,3 +589,21 @@ None of these were caught by reasoning ahead of time — every one required actu
 - TOOL-004/006/007: real, diverse news data repeatedly exposed summary-quality degradation (`.parks`, "Bruxost village", a stray Devanagari word) that mock data never could have surfaced, since mock articles were always small and focused.
 
 **Known limitations carried forward, not fixed in Sprint 4 (deliberately, to stay scoped):** the free LLM's summary quality degrades when synthesizing many unrelated real stories at once — a real, named limitation now, not three separate surprises. LiteLLM's retry still doesn't distinguish permanent from transient failures (Sprint 3's finding, unchanged). There's still no automated test suite (flagged since Sprint 2). No second news source exists yet to actually prove the `NewsSourceTool` Protocol's swappability claim — it's designed for that, but untested against a real second implementation. Article count per fetch isn't capped or ranked — Retrieval currently passes everything usable to the Summarizer regardless of volume, which is *why* the quality-degradation pattern above exists; deliberately not fixed here since ranking/filtering-by-relevance is explicitly out of Sprint 4's scope.
+
+---
+
+## Sprint 5 — Intelligent Planning
+
+### PLAN-001 — Planner design review
+
+**Date:** 2026-07-29
+
+**What was done:** Answered five architecture questions before writing any Sprint 5 code, written up as [`ADR 0004`](../docs/ADR/0004-planner-responsibilities.md) — mirroring TOOL-001's role for Sprint 4.
+
+**Core distinction, in my own words:** the Planner's job is entirely about *what the user wants*, never *how the system technically fulfills it*. Every "must never belong to the Planner" item (which tool, which LLM provider, execution order, retry handling, formatting) is implementation detail that already has an owner elsewhere in the architecture — the Planner doesn't need to know those owners exist, only that the capability itself does.
+
+**The subtlest point, worth remembering:** the Planner not knowing RSS exists (ADR 0003's principle, reapplied) is a different kind of statement than the Planner not knowing LiteLLM exists — because the Planner *is* an LLM call itself. The distinction is: using an LLM to reason is the node's own implementation detail; the *plan it outputs* must never encode anything about that mechanism. Same LLM-calling machinery as Summarizer (`app/llm/client.py`), zero mechanism-awareness leaking into the actual plan data.
+
+**Also established:** the Planner's raw output is untrusted data crossing a trust boundary — the same category as RSS feed content in ADR 0003, not specially trusted for being "our own" AI node's output. This directly sets up PLAN-004's validation requirement before any code exists to enforce it.
+
+**Problem it solved:** without this reviewed and written down first, PLAN-002/003 risked either over-loading the Planner's prompt with implementation knowledge it doesn't need, or under-specifying what `ExecutionPlan` should and shouldn't encode — repeating, in a new context, exactly the kind of coupling ADR 0003 was written to prevent for Tools.
