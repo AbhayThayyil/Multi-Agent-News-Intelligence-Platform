@@ -53,7 +53,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **PLAN-001 — Planner design review**
   Answer before writing code: what is a Planner? What decisions belong to it, and which must never belong to it? Why doesn't it know RSS exists? Why doesn't it know LiteLLM exists? Deliverable: an ADR explaining Planner responsibilities. See [`ADR 0004`](../ADR/0004-planner-responsibilities.md).
 
-- [ ] **PLAN-002 — Design the execution plan schema**
+- [x] **PLAN-002 — Design the execution plan schema**
   Replace the hardcoded `execution_plan = ["retrieve", "summarize"]` list with a typed model. See the design note above for the proposed minimal shape — finalize at this ticket.
 
 - [ ] **PLAN-003 — Build the real Planner**
