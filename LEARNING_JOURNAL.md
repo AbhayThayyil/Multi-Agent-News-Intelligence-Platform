@@ -607,3 +607,15 @@ None of these were caught by reasoning ahead of time — every one required actu
 **Also established:** the Planner's raw output is untrusted data crossing a trust boundary — the same category as RSS feed content in ADR 0003, not specially trusted for being "our own" AI node's output. This directly sets up PLAN-004's validation requirement before any code exists to enforce it.
 
 **Problem it solved:** without this reviewed and written down first, PLAN-002/003 risked either over-loading the Planner's prompt with implementation knowledge it doesn't need, or under-specifying what `ExecutionPlan` should and shouldn't encode — repeating, in a new context, exactly the kind of coupling ADR 0003 was written to prevent for Tools.
+
+### PLAN-002 — Design the execution plan schema
+
+**Date:** 2026-07-29
+
+**What was done:** `app/schemas/execution_plan.py` — `ExecutionPlan(BaseModel)` with `intent: Literal["summary", "timeline"]`, `requires_timeline: bool = False`, `response_style: Literal["neutral", "technical", "casual"] = "neutral"`, and `model_config = ConfigDict(extra="forbid")`. Upgraded `GraphState.execution_plan` from `list[str]` to `ExecutionPlan`. Updated the still-mocked `planner_node` to return a real `ExecutionPlan` instance instead of the old list, so the graph keeps working correctly until PLAN-003 makes the Planner itself real.
+
+**Refinement beyond the pre-sprint sketch — constrained `Literal` types, not free strings:** the planning-stage design had `intent: str` and `response_style: str`. Tightened both to small closed `Literal` sets specifically because PLAN-004 (structured output validation) needs real teeth — an unconstrained string field would let a malformed LLM response like `"intent": "banana"` pass Pydantic validation as a perfectly valid string, silently defeating the whole point of validating Planner output. `extra="forbid"` was added for the same reason, directly at the schema level, rather than left to be caught by separate validation logic later.
+
+**Decision — upgrading `GraphState.execution_plan`'s type, unlike `articles`:** `articles` stayed `list[dict]` in TOOL-004 specifically to avoid rippling into `summarizer.py`/`response_composer.py`, which already consumed it via dict access. Checked here first: **nothing currently reads `execution_plan`'s contents at all** (Retrieval/Summarizer never touch it, matching the established "don't fake-read unused fields" pattern) — so there was no ripple to avoid, and PLAN-005 is about to need real structured access (`.requires_timeline`) for routing. Upgraded the type now rather than deferring.
+
+**Verification:** confirmed all three `Literal`/`extra="forbid"` constraints reject invalid values (bad `intent`, bad `response_style`, unexpected extra field) while defaults apply correctly for a minimal valid plan. Then ran the full graph end-to-end and confirmed `execution_plan` flows through as a real typed `ExecutionPlan` object, not a raw dict or list — regression-free.
