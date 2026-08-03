@@ -639,3 +639,13 @@ All four correct — the model picked up both the intent distinction (timeline v
 **Problem it solved:** the Planner now genuinely reasons about user intent instead of returning a hardcoded plan — the first real "understand what the user wants" capability in the whole system. Note this doesn't change routing *yet* — `workflow.py` still runs the same fixed path regardless of the plan's contents; PLAN-005 is what makes the graph actually act on `requires_timeline`.
 
 **Full graph regression:** confirmed end-to-end with the real Planner wired in — Planner call succeeded in 4.86s, correctly threaded into the existing Retrieval → Summarizer → Response Composer path, no regressions.
+
+### PLAN-004 — Structured output validation
+
+**Date:** 2026-07-29
+
+**What was done:** `PlannerOutputError` + `parse_execution_plan(raw_output: str) -> ExecutionPlan`, both added to `app/agents/planner.py` — co-located with the node that uses them, matching where `LLMError` lives in `client.py` and `RSSToolError` lives in `rss.py`. Catches `json.JSONDecodeError` (invalid syntax) and `pydantic.ValidationError` (missing/unknown/extra fields — already enforced by PLAN-002's `Literal`/`extra="forbid"` design, just not caught until now), both wrapped into one clear exception type.
+
+**A real edge case caught by thinking through failure modes, not just the four named in the ticket:** valid JSON that isn't a JSON *object* — e.g. the model outputs a bare string or array instead of `{...}`. `ExecutionPlan(**parsed)` would raise a confusing `TypeError` in that case, not a clean `ValidationError`, since you can't `**`-unpack a string or list as keyword arguments. Added an explicit `isinstance(parsed, dict)` check before attempting construction, so this case gets the same clean `PlannerOutputError` as every other malformed-output case, not a different, uglier crash.
+
+**Verification — all cases tested directly, not assumed:** ran eight cases through `parse_execution_plan` — valid output (regression), invalid JSON syntax, markdown-fenced JSON, missing required field, unknown intent value, extra field, and both non-object JSON shapes (array, bare string). All seven malformed cases correctly raised `PlannerOutputError`; the valid case parsed correctly. Then monkey-patched the Planner's LLM client to return genuinely malformed output and confirmed `PlannerOutputError` propagates uncaught through the full `graph.invoke()` — same "fail loudly for now" pattern as every prior error-handling ticket (AI-005, TOOL-005) before its recovery-policy sibling (PLAN-006, next) layers retry/fallback on top.
