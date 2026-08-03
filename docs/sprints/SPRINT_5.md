@@ -59,7 +59,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **PLAN-003 — Build the real Planner**
   Replace the mock return with `User Query → Planner Prompt → LLM → Structured Execution Plan`. The Planner only outputs the plan — it never executes it.
 
-- [ ] **PLAN-004 — Structured output validation**
+- [x] **PLAN-004 — Structured output validation**
   The Planner returns JSON; it can't be trusted as-is. Handle: invalid JSON, missing fields, unknown/extra fields. The graph must never receive malformed state.
 
 - [ ] **PLAN-005 — Conditional routing**
