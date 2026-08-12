@@ -68,7 +68,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **PLAN-006 — Failure strategy**
   Architecture discussion first (retry vs. fallback vs. fail-request), then implementation. See the design note above for the proposed direction.
 
-- [ ] **PLAN-007 — End-to-end verification**
+- [x] **PLAN-007 — End-to-end verification**
   Run several distinct queries ("Summarize AI news," "Show a timeline," "Latest NVIDIA news," etc.) and observe different execution plans. Verify state evolution, conditional routing, Planner reasoning, and graph stability. Note: queries implying capabilities Sprint 5 doesn't build yet (e.g. "Compare X and Y" — Trend/Comparison is out of scope) are expected to still route through the same retrieve+summarize path; only the *content* differs, not the plan — don't mistake that for a bug.
 
 ---
