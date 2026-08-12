@@ -62,7 +62,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **PLAN-004 — Structured output validation**
   The Planner returns JSON; it can't be trusted as-is. Handle: invalid JSON, missing fields, unknown/extra fields. The graph must never receive malformed state.
 
-- [ ] **PLAN-005 — Conditional routing**
+- [x] **PLAN-005 — Conditional routing**
   The first graph change since Sprint 2. Wire a real conditional edge: route to Timeline (mock) when `requires_timeline` is true, straight to Summarizer otherwise. This is about proving routing works, not building real timeline analysis.
 
 - [ ] **PLAN-006 — Failure strategy**
