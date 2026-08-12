@@ -1,6 +1,6 @@
 # Sprint 5 — Intelligent Planning
 
-**Status:** Design approved (via pre-sprint design review) — PLAN-001 complete, awaiting PLAN-002.
+**Status:** Complete — all tickets (PLAN-001–007) implemented and verified; Sprint Exit Criteria confirmed end-to-end on a clean `main` (2026-07-29). `app/graph/workflow.py`'s entire project history is exactly two commits: `ENGINE-007` (Sprint 2, initial wiring) and `PLAN-005` (this sprint, conditional routing).
 
 Goal: replace the mocked Planner with a real reasoning node that produces a structured execution plan, and let the graph route dynamically based on it. This is the sprint that turns an AI workflow into an **agentic** one — the workflow starts adapting to what the user actually asked for, instead of always doing the same fixed sequence.
 

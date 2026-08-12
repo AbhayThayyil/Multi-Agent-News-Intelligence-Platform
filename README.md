@@ -213,7 +213,11 @@ Delivered: a real LLM integrated cleanly via LiteLLM + OpenRouter (`app/llm/clie
 
 Delivered: the first real external Tool (`app/tools/rss.py`), a normalized `Article` domain model with real validation, retry/timeout handling built on `tenacity`, and Retrieval now calling live RSS data instead of mocks. Planner remains mocked and `app/graph/workflow.py` was never touched across either Sprint 3 or Sprint 4 — the orchestration architecture absorbed two full rounds of real implementation work unchanged. See [`ADR 0003`](docs/ADR/0003-tool-architecture.md) for the Tool architecture rationale and [`docs/sprints/SPRINT_4.md`](docs/sprints/SPRINT_4.md) for the full ticket log.
 
-Planner reasoning, additional tools (web search, etc.), persistence, and conversation history remain intentionally unbuilt. Sprint 5's scope is not yet planned.
+**Sprint 5 — Intelligent Planning: Complete**
+
+Delivered: a real Planner (`app/agents/planner.py`) that reasons about user intent via a structured, validated `ExecutionPlan` (`app/schemas/execution_plan.py`), with a retry-then-safe-fallback strategy for malformed LLM output. The graph now routes dynamically — a mocked `Timeline` node (`app/agents/timeline.py`) only runs when the Planner decides it's needed, the first conditional edge in the project. Retrieval, Summarizer, and Response Composer remain byte-for-byte unchanged. See [`ADR 0004`](docs/ADR/0004-planner-responsibilities.md) for the Planner architecture rationale and [`docs/sprints/SPRINT_5.md`](docs/sprints/SPRINT_5.md) for the full ticket log.
+
+Real Timeline analysis, additional tools (web search, etc.), persistence, and conversation history remain intentionally unbuilt. Sprint 6's scope is not yet planned.
 
 ---
 
