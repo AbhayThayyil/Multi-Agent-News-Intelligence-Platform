@@ -682,3 +682,28 @@ All four correct — the model picked up both the intent distinction (timeline v
 4. `LLMError` — propagates immediately after exactly 1 call, confirming the retry loop never catches it and never wastes a second attempt on an infra failure.
 
 **Problem it solved:** the Planner can now "fail safely," per the ticket's own framing — an occasional bad LLM sample degrades gracefully to the safe default plan (still retrieve+summarize) instead of crashing the whole request, while genuine system failures still surface loudly rather than being silently papered over.
+
+### PLAN-007 — End-to-end verification
+
+**Date:** 2026-07-29
+
+**Ran all four queries from the ticket for real** — no mocking this time, since this is the closing verification and the earlier rate limit had genuinely cleared (checked with a cheap single-call probe first before committing to the full run):
+
+| Query | intent | requires_timeline | Routed through Timeline |
+|---|---|---|---|
+| "Summarize AI news" | summary | False | No |
+| "Compare OpenAI and Google" | summary | False | No |
+| "Show a timeline" | timeline | True | Yes |
+| "Latest NVIDIA news" | summary | False | No |
+
+**All four verification dimensions confirmed:**
+1. **State evolution** — every query produced the correct state keys (the "Show a timeline" run correctly had an extra `timeline` key the other three didn't), and `response.answer == summary` held for all four.
+2. **Conditional routing** — `'timeline' in state` matched `plan.requires_timeline` exactly, for every single query, zero mismatches.
+3. **Planner reasoning** — correctly distinguished the one genuine timeline request from three non-timeline ones, including handling a query type the system has no real capability for yet.
+4. **Graph stability** — four different, unpredictable real inputs, zero crashes, zero fallbacks to `DEFAULT_EXECUTION_PLAN` needed (the LLM produced valid output on the first attempt every time this run).
+
+**The most interesting result, confirming something anticipated during Sprint 5 planning:** "Compare OpenAI and Google" correctly produced `intent="summary"` — not an invented `"comparison"` value, which would have violated `ExecutionPlan`'s `Literal["summary", "timeline"]` constraint and triggered the retry/fallback path from PLAN-006. The model correctly stayed within the capabilities that actually exist rather than hallucinating a new category, exactly the behavior the SPRINT_5.md design note predicted before any code existed to test it.
+
+**One more structural check, mirroring prior sprint closeouts:** `workflow.py`'s entire history across the *whole project* is exactly two commits — `ENGINE-007` (Sprint 2, initial wiring) and `PLAN-005` (this sprint, conditional routing). Sprint 3 and Sprint 4's substantial real-integration work never touched it; it changed exactly once more, precisely when the architecture genuinely needed to evolve — not a moment before, not a moment after.
+
+**Sprint 5 Exit Criteria: met.** All PLAN-001–007 tickets complete.
