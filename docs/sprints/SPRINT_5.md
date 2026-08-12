@@ -65,7 +65,7 @@ By the end of this sprint, you should be able to explain:
 - [x] **PLAN-005 — Conditional routing**
   The first graph change since Sprint 2. Wire a real conditional edge: route to Timeline (mock) when `requires_timeline` is true, straight to Summarizer otherwise. This is about proving routing works, not building real timeline analysis.
 
-- [ ] **PLAN-006 — Failure strategy**
+- [x] **PLAN-006 — Failure strategy**
   Architecture discussion first (retry vs. fallback vs. fail-request), then implementation. See the design note above for the proposed direction.
 
 - [ ] **PLAN-007 — End-to-end verification**

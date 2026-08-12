@@ -664,3 +664,21 @@ All four correct — the model picked up both the intent distinction (timeline v
 3. `git diff --stat` on `retrieval.py`, `summarizer.py`, `response_composer.py` — zero output, confirming all three remain genuinely untouched, per the exit criteria.
 
 **Problem it solved:** the graph now actually adapts its execution path based on what the Planner decided — the first real behavioral difference between two different user requests anywhere in this project. Everything before this sprint always ran the identical fixed sequence regardless of what was asked.
+
+### PLAN-006 — Failure strategy
+
+**Date:** 2026-07-29
+
+**Policy (decided during Sprint 5 planning, implemented here):** two different failure modes get two different responses. Malformed Planner *output* (invalid JSON, schema mismatch — `PlannerOutputError`) gets retried up to `PLANNER_MAX_ATTEMPTS` (2) times, then falls back to a safe `DEFAULT_EXECUTION_PLAN` rather than failing the request — the LLM responded, just not usefully, and a different sample might succeed. Genuine LLM *infrastructure* failure (`LLMError` — timeout, auth, rate limit) still propagates immediately, uncaught, same as every prior sprint — an infra failure isn't something a default plan should paper over.
+
+**Decision — a plain loop, not `tenacity` this time:** `TOOL-005` used `tenacity` because that retry was about network reliability (give a struggling server time to recover via backoff). This retry is about LLM sampling variance — there's no server to wait on, just "ask again, maybe get a cleaner sample." Configuring `tenacity`'s backoff machinery for a problem that doesn't need backoff would have been consistency for its own sake, not genuine fit. A plain `for` loop is the more honestly-scoped tool here.
+
+**Decision — `LLMError` bypasses the retry loop entirely, no double-retry:** `client.complete()` already retries transient network failures internally (LiteLLM's `num_retries=2`, from AI-005). Only `PlannerOutputError` — our own validation layer — triggers this new loop. Retrying an already-internally-retried infra failure again at the Planner level would just waste more rate-limited calls for no benefit.
+
+**Verification — all four scenarios tested directly via monkey-patching, not assumed:**
+1. First-attempt success — 1 call, correct plan, no retry triggered.
+2. Fails once, succeeds on retry — exactly 2 calls, returns the *successful* attempt's plan.
+3. Always invalid — exactly 2 calls (respects `PLANNER_MAX_ATTEMPTS`, doesn't retry forever), falls back to `DEFAULT_EXECUTION_PLAN`, does **not** raise.
+4. `LLMError` — propagates immediately after exactly 1 call, confirming the retry loop never catches it and never wastes a second attempt on an infra failure.
+
+**Problem it solved:** the Planner can now "fail safely," per the ticket's own framing — an occasional bad LLM sample degrades gracefully to the safe default plan (still retrieve+summarize) instead of crashing the whole request, while genuine system failures still surface loudly rather than being silently papered over.
