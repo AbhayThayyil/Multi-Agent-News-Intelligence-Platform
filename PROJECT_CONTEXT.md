@@ -350,11 +350,11 @@ Goal: introduce the first real external tool (RSS) into the system, without chan
 
 **Status:** Complete. All tickets implemented and verified; re-confirmed end-to-end on a clean `main` — `app/graph/workflow.py`'s entire history across Sprint 3 *and* Sprint 4 remains the single commit from Sprint 2's ENGINE-007. Retrieval now calls a real RSS Tool with retry/timeout handling and data validation; Planner and Summarizer's LLM integration are unaffected. One known limitation carried forward: this free model's summary quality degrades noticeably when synthesizing many unrelated real stories at once (a recurring pattern across both Sprint 3 and 4), alongside Sprint 3's carried-forward retry-policy limitation and the still-missing automated test suite.
 
-## Sprint 5 — Intelligent Planning
+## Sprint 5 — Intelligent Planning (Complete)
 
-Goal: replace the mocked Planner with a real reasoning node producing a structured, validated execution plan, and let the graph route dynamically based on it — the first change to `app/graph/workflow.py` since Sprint 2. Turns the AI workflow into an agentic one. See [`docs/sprints/SPRINT_5.md`](docs/sprints/SPRINT_5.md) for the ticket breakdown (PLAN-001–007); PLAN-001 itself will produce a Planner Responsibilities ADR as its deliverable.
+Goal: replace the mocked Planner with a real reasoning node producing a structured, validated execution plan, and let the graph route dynamically based on it — the first change to `app/graph/workflow.py` since Sprint 2. Turns the AI workflow into an agentic one. See [`ADR 0004`](docs/ADR/0004-planner-responsibilities.md) for the Planner responsibilities rationale and [`docs/sprints/SPRINT_5.md`](docs/sprints/SPRINT_5.md) for the ticket breakdown (PLAN-001–007).
 
-**Status:** Design approved via pre-sprint design review — awaiting PLAN-001.
+**Status:** Complete. All tickets implemented and verified; re-confirmed end-to-end on a clean `main` — the graph now routes dynamically based on real Planner reasoning (a real `Timeline` request correctly triggers the conditional edge; other requests, including ones implying capabilities that don't exist yet like "compare X and Y," correctly stay within the system's actual `Literal`-constrained capabilities rather than producing invalid output). `app/graph/workflow.py`'s entire project history is exactly two commits (`ENGINE-007`, `PLAN-005`) — it changed only when the architecture genuinely needed to. Known limitations carried forward from earlier sprints (summary quality on large article volumes, LiteLLM's retry-policy gap, no automated test suite) remain unaddressed, deliberately, to stay scoped. Sprint 6 is not yet planned.
 
 ---
 

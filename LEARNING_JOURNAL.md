@@ -707,3 +707,19 @@ All four correct — the model picked up both the intent distinction (timeline v
 **One more structural check, mirroring prior sprint closeouts:** `workflow.py`'s entire history across the *whole project* is exactly two commits — `ENGINE-007` (Sprint 2, initial wiring) and `PLAN-005` (this sprint, conditional routing). Sprint 3 and Sprint 4's substantial real-integration work never touched it; it changed exactly once more, precisely when the architecture genuinely needed to evolve — not a moment before, not a moment after.
 
 **Sprint 5 Exit Criteria: met.** All PLAN-001–007 tickets complete.
+
+---
+
+## Sprint 5 — Closeout Retrospective
+
+**Date:** 2026-07-29
+
+**Re-verified fresh on a clean `main`:** one more real query ("Give me a timeline of recent AI developments") correctly classified as a timeline request and routed through the new conditional edge — including picking up `response_style="technical"` on its own, a nuance not seen in PLAN-007's exact four test queries. `workflow.py`'s entire project history remains exactly two commits (`ENGINE-007`, `PLAN-005`), and dependencies stayed exactly as they were at the end of Sprint 4 — Sprint 5 added zero new packages, since Planner's real implementation only needed `pydantic`/`json`/`logging`, all already present.
+
+**What Sprint 5 actually built:** `ADR 0004` (Planner responsibilities), a real, validated `ExecutionPlan` schema with closed `Literal` sets instead of free strings, a real reasoning Planner reusing the same `LLMClient` abstraction Summarizer already used, structured-output validation catching every malformed-output shape (including one edge case — non-object JSON — found by thinking through failure modes rather than the ticket's literal four), a two-tier retry/fallback failure strategy, and — the sprint's actual architectural centerpiece — the first conditional edge in the project's graph.
+
+**The theme of this sprint, distinct from Sprints 3 and 4:** those sprints were about *replacing mocked logic with real logic inside unchanged nodes*. This sprint was about *the graph itself becoming capable of behaving differently* — the first time in the whole project that two different user requests could produce genuinely different execution paths, not just different content from an identical path. That's the actual meaning of "AI workflow" becoming "agentic workflow" the sprint's own framing named at the start.
+
+**A real, honest complication handled without compromising rigor:** hit OpenRouter's free-tier rate limit mid-sprint (PLAN-005), from the cumulative volume of real calls across PLAN-002 through PLAN-005 in one session. Rather than either fabricate results or block entirely, distinguished what actually needed real LLM variance (Planner classification quality — already proven with 8+ diverse real queries across PLAN-003 and PLAN-007) from what only needed the real *graph mechanism* exercised (routing correctness, provable via controlled inputs). Same principle as TOOL-005's monkey-patched retry tests — verify the actual thing under test, don't manufacture unnecessary dependency on external, rate-limited systems for questions that don't require them.
+
+**Known limitations carried forward, not fixed in Sprint 5 (deliberately, to stay scoped):** Timeline is still fully mocked — real chronological analysis is future work. The Planner only distinguishes two intents (`summary`, `timeline`); every other request type (comparison, fact-checking, etc.) currently and correctly collapses into `summary`, which is honest but limited. No automated test suite still (flagged since Sprint 2). Summary quality on large article volumes and LiteLLM's retry-policy gap (both from Sprint 3/4) remain unaddressed.
