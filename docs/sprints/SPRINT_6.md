@@ -49,7 +49,7 @@ By the end of this sprint, you should be able to explain:
   `app/schemas/timeline.py`: `TimelineEntry` (`date: datetime`, `event: str`, `source_title: str`, `source_url: HttpUrl | None`) and `Timeline` (`entries: list[TimelineEntry]`), mirroring `Article`/`ExecutionPlan`'s validation rigor. Also defines the lightweight schema the batched LLM call itself returns (index + event pairs), separate from the final assembled `TimelineEntry`.
   *Depends on:* TIMELINE-001.
 
-- [ ] **TIMELINE-003 — Deterministic validation, capping, and chronological ordering**
+- [x] **TIMELINE-003 — Deterministic validation, capping, and chronological ordering**
   Pure Python, zero LLM calls. Given `state["articles"]`: drop articles with no usable `published_at` (logged), normalize dates to one consistent timezone-aware form, sort chronologically via `sorted()` (never mutate the original list), cap to the most recent N (proposed default: 10).
   *Depends on:* TIMELINE-002.
 
