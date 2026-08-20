@@ -45,7 +45,7 @@ By the end of this sprint, you should be able to explain:
   Before writing code: what makes a node Hybrid? Where does deterministic vs. LLM logic live within one? How is "LLM only where reasoning is genuinely required" enforced, not just claimed? Why must `articles` stay immutable, and how is that actually guaranteed in code? Deliverable: ADR 0005.
   *Depends on:* nothing.
 
-- [ ] **TIMELINE-002 — Design the Timeline schema**
+- [x] **TIMELINE-002 — Design the Timeline schema**
   `app/schemas/timeline.py`: `TimelineEntry` (`date: datetime`, `event: str`, `source_title: str`, `source_url: HttpUrl | None`) and `Timeline` (`entries: list[TimelineEntry]`), mirroring `Article`/`ExecutionPlan`'s validation rigor. Also defines the lightweight schema the batched LLM call itself returns (index + event pairs), separate from the final assembled `TimelineEntry`.
   *Depends on:* TIMELINE-001.
 

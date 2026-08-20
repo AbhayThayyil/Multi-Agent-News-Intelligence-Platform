@@ -741,3 +741,17 @@ All four correct — the model picked up both the intent distinction (timeline v
 **Also grounded the immutability requirement in something concrete rather than abstract:** traced the actual risk to two specific existing files — Summarizer's prompt builder and Response Composer's `sources` field both already read `state["articles"]`, and Timeline sits between Retrieval and Summarizer in the graph. A real mutation bug here wouldn't just be "bad practice" in the abstract, it would silently corrupt what two already-correct, already-verified files receive, through no fault of their own.
 
 **Problem it solved:** without this reviewed and written down first, TIMELINE-002/003 risked either blending deterministic and AI logic together (undermining the entire reason Sprint 6 exists) or leaving immutability as an unenforced convention that would only get caught, if at all, by TIMELINE-007's tests — after the fact, not by design.
+
+### TIMELINE-002 — Design the Timeline schema
+
+**Date:** 2026-08-20
+
+**What was done:** `app/schemas/timeline.py` with **two** distinct schemas, not one — the `SPRINT_6.md` sketch had only named the first:
+- `TimelineEntry`/`Timeline` — the final assembled shape, constructed by our own trusted code (TIMELINE-005), combining deterministic data (date, title, url — already validated via `Article`) with the LLM's event text.
+- `ExtractedEvent`/`TimelineExtractionResponse` — the shape the LLM's *raw batch response* must match, with the same untrusted-boundary rigor `ExecutionPlan` already established (`extra="forbid"`, constrained fields). `index: int = Field(ge=0)` specifically guards the map-back-to-article step TIMELINE-005 will do by position.
+
+**Decision — file placement matches Planner's precedent exactly:** all four types live in `app/schemas/timeline.py` regardless of which code parses them, since `schemas/` is established as "all Pydantic contracts." The actual parsing/validation *logic* that turns raw LLM text into a validated `TimelineExtractionResponse` is deliberately **not** in this ticket's scope — that belongs in `app/agents/timeline.py` at TIMELINE-004, mirroring how `parse_execution_plan`/`PlannerOutputError` live in `app/agents/planner.py` alongside the node itself, not in `app/schemas/execution_plan.py`.
+
+**Decision — `Timeline.entries` allows an empty list.** If every article lacks a usable `published_at` (per TIMELINE-003's drop policy), zero entries could legitimately result. An empty timeline is a syntactically valid `Timeline`, not a schema-level error — what to *do* about a zero-entry result is a policy question for TIMELINE-006, not something to bake into the schema's validation rules.
+
+**Verification:** nine checks — valid construction for both schema pairs, empty `event`/missing `date` rejected on `TimelineEntry`, optional `source_url` defaulting correctly, both an empty and populated `Timeline` accepted, a negative `index` rejected on `ExtractedEvent`, and extra fields rejected on both LLM-response schemas.
