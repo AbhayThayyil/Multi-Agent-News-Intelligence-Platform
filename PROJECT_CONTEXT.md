@@ -354,7 +354,13 @@ Goal: introduce the first real external tool (RSS) into the system, without chan
 
 Goal: replace the mocked Planner with a real reasoning node producing a structured, validated execution plan, and let the graph route dynamically based on it — the first change to `app/graph/workflow.py` since Sprint 2. Turns the AI workflow into an agentic one. See [`ADR 0004`](docs/ADR/0004-planner-responsibilities.md) for the Planner responsibilities rationale and [`docs/sprints/SPRINT_5.md`](docs/sprints/SPRINT_5.md) for the ticket breakdown (PLAN-001–007).
 
-**Status:** Complete. All tickets implemented and verified; re-confirmed end-to-end on a clean `main` — the graph now routes dynamically based on real Planner reasoning (a real `Timeline` request correctly triggers the conditional edge; other requests, including ones implying capabilities that don't exist yet like "compare X and Y," correctly stay within the system's actual `Literal`-constrained capabilities rather than producing invalid output). `app/graph/workflow.py`'s entire project history is exactly two commits (`ENGINE-007`, `PLAN-005`) — it changed only when the architecture genuinely needed to. Known limitations carried forward from earlier sprints (summary quality on large article volumes, LiteLLM's retry-policy gap, no automated test suite) remain unaddressed, deliberately, to stay scoped. Sprint 6 is not yet planned.
+**Status:** Complete. All tickets implemented and verified; re-confirmed end-to-end on a clean `main` — the graph now routes dynamically based on real Planner reasoning (a real `Timeline` request correctly triggers the conditional edge; other requests, including ones implying capabilities that don't exist yet like "compare X and Y," correctly stay within the system's actual `Literal`-constrained capabilities rather than producing invalid output). `app/graph/workflow.py`'s entire project history is exactly two commits (`ENGINE-007`, `PLAN-005`) — it changed only when the architecture genuinely needed to. Known limitations carried forward from earlier sprints (summary quality on large article volumes, LiteLLM's retry-policy gap, no automated test suite) remain unaddressed, deliberately, to stay scoped.
+
+## Sprint 6 — Hybrid Timeline
+
+Goal: replace the mocked Timeline node with a real hybrid implementation — the first node combining deterministic Python (validation, date normalization, capping, chronological ordering) with LLM reasoning (event extraction) in one graph node, the "Hybrid" category `ADR 0001` defined but never built. Reuses `LLMClient`; `workflow.py`'s routing stays exactly as PLAN-005 built it; `articles` stay immutable. See [`docs/sprints/SPRINT_6.md`](docs/sprints/SPRINT_6.md) for the ticket breakdown (TIMELINE-001–007); TIMELINE-001 will produce a Hybrid Node Design ADR as its deliverable.
+
+**Status:** Design proposed by Claude at the user's request, pending review — awaiting TIMELINE-001.
 
 ---
 
