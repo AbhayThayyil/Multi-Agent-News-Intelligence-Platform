@@ -755,3 +755,20 @@ All four correct — the model picked up both the intent distinction (timeline v
 **Decision — `Timeline.entries` allows an empty list.** If every article lacks a usable `published_at` (per TIMELINE-003's drop policy), zero entries could legitimately result. An empty timeline is a syntactically valid `Timeline`, not a schema-level error — what to *do* about a zero-entry result is a policy question for TIMELINE-006, not something to bake into the schema's validation rules.
 
 **Verification:** nine checks — valid construction for both schema pairs, empty `event`/missing `date` rejected on `TimelineEntry`, optional `source_url` defaulting correctly, both an empty and populated `Timeline` accepted, a negative `index` rejected on `ExtractedEvent`, and extra fields rejected on both LLM-response schemas.
+
+### TIMELINE-003 — Deterministic validation, capping, and chronological ordering
+
+**Date:** 2026-08-20
+
+**A real assumption checked before writing any code, not trusted:** confirmed directly that `state["articles"]`' `published_at` arrives as a **string** (`'2026-08-20T18:12:59Z'`), not a real `datetime` — a consequence of `retrieval_node` using `model_dump(mode="json")` back in TOOL-006. This meant the deterministic step needed to reconstruct real `Article` objects from the dicts (letting Pydantic re-parse the strings), not work with raw dict values directly.
+
+**What was done:** `app/services/timeline.py` — four small, single-purpose functions (`normalize_to_utc`, `filter_dated_articles`, `sort_chronologically`, `cap_to_most_recent`) composed by one orchestrator (`select_timeline_articles`), rather than one function doing all four things — matches `PROJECT_CONTEXT.md`'s explicit Single Responsibility Principle more literally than earlier "mock" nodes needed to, since this is the first node with genuinely separable sub-steps worth naming individually.
+
+**A defensive addition beyond what was pre-sketched:** added explicit UTC normalization for naive datetimes, even though `RSSTool`'s `_to_article` (TOOL-003) already always attaches `tzinfo=timezone.utc`. Reasoning: Python raises `TypeError` comparing a naive datetime to an aware one, so a single naive value slipping through — from a future code path, not necessarily this one — would crash `sorted()` entirely, not just produce a wrong answer. Cheap, concrete protection against a real crash class, not defensive programming for its own sake.
+
+**Verification — synthetic data covering every case, then real data as a second pass:**
+1. 16 synthetic articles (12 dated, 3 dateless, 1 with a naive datetime) → correctly reduced to the cap (10), dateless ones dropped, naive one normalized to UTC-aware and correctly placed by date, final order strictly ascending.
+2. **Immutability proven, not assumed:** deep-copied the input before calling `select_timeline_articles`, compared the original list against that snapshot afterward — byte-for-byte identical, confirming `ADR 0005`'s guarantee actually holds in this code, not just in the design intent.
+3. Real live RSS data (36 articles) → correctly capped to 10, correctly ordered — the synthetic tests' logic held against real-world data too, not just constructed examples.
+
+**Problem it solved:** this is the deterministic half of the Hybrid split `ADR 0005` designed — it structurally cannot reach for an LLM (confirmed via `grep` on its own imports: only `logging`, `datetime`, `Article`), and it hands TIMELINE-004 exactly the clean, bounded, correctly-ordered input the LLM step should never have to re-derive.
