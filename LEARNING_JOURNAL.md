@@ -723,3 +723,21 @@ All four correct — the model picked up both the intent distinction (timeline v
 **A real, honest complication handled without compromising rigor:** hit OpenRouter's free-tier rate limit mid-sprint (PLAN-005), from the cumulative volume of real calls across PLAN-002 through PLAN-005 in one session. Rather than either fabricate results or block entirely, distinguished what actually needed real LLM variance (Planner classification quality — already proven with 8+ diverse real queries across PLAN-003 and PLAN-007) from what only needed the real *graph mechanism* exercised (routing correctness, provable via controlled inputs). Same principle as TOOL-005's monkey-patched retry tests — verify the actual thing under test, don't manufacture unnecessary dependency on external, rate-limited systems for questions that don't require them.
 
 **Known limitations carried forward, not fixed in Sprint 5 (deliberately, to stay scoped):** Timeline is still fully mocked — real chronological analysis is future work. The Planner only distinguishes two intents (`summary`, `timeline`); every other request type (comparison, fact-checking, etc.) currently and correctly collapses into `summary`, which is honest but limited. No automated test suite still (flagged since Sprint 2). Summary quality on large article volumes and LiteLLM's retry-policy gap (both from Sprint 3/4) remain unaddressed.
+
+---
+
+## Sprint 6 — Hybrid Timeline
+
+### TIMELINE-001 — Hybrid node design review
+
+**Date:** 2026-08-19
+
+**What was done:** Answered four architecture questions before writing any Sprint 6 code, written up as [`ADR 0005`](../docs/ADR/0005-hybrid-node-design.md) — mirroring TOOL-001/PLAN-001's role, but this time for a genuinely new node *category* (Hybrid), the first one `ADR 0001` named back in Sprint 2 but never built.
+
+**The core distinction from every prior "design review" ticket:** TOOL-001 and PLAN-001 both drew a line between one node and *external* concerns (RSS, LiteLLM) it shouldn't know about. This ADR draws a line *within a single node* — between its own deterministic half and its own AI half. That's a meaningfully different kind of boundary to enforce, since both halves live in the same conceptual unit of work rather than being separated by a whole architectural layer.
+
+**The part I think matters most:** deciding *how* "LLM only where reasoning is genuinely required" gets enforced, not just stated. Landed on structural enforcement — the deterministic module never imports the LLM client at all, so violating the principle isn't just discouraged, it's not something the deterministic code is even capable of doing by accident. Same pattern already proven twice (`RSSTool` normalizing before returning, `ExecutionPlan`'s `extra="forbid"`) — a principle enforced by what the code *can* do, not by what someone remembers to check in review.
+
+**Also grounded the immutability requirement in something concrete rather than abstract:** traced the actual risk to two specific existing files — Summarizer's prompt builder and Response Composer's `sources` field both already read `state["articles"]`, and Timeline sits between Retrieval and Summarizer in the graph. A real mutation bug here wouldn't just be "bad practice" in the abstract, it would silently corrupt what two already-correct, already-verified files receive, through no fault of their own.
+
+**Problem it solved:** without this reviewed and written down first, TIMELINE-002/003 risked either blending deterministic and AI logic together (undermining the entire reason Sprint 6 exists) or leaving immutability as an unenforced convention that would only get caught, if at all, by TIMELINE-007's tests — after the fact, not by design.

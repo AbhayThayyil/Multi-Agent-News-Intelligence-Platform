@@ -1,10 +1,10 @@
 # Sprint 6 — Hybrid Timeline
 
-**Status:** Design proposed by Claude, pending your review — awaiting TIMELINE-001.
+**Status:** Design proposed by Claude, pending your review — TIMELINE-001 complete, awaiting TIMELINE-002.
 
 Goal: replace the mocked Timeline node with a real **hybrid** implementation — the first node in the project combining deterministic Python and LLM reasoning within one graph node. Deterministic code handles validation, date normalization, capping, and chronological ordering; the LLM is used only for the one thing that genuinely requires interpretation — extracting a concise event description per article. Reuses the existing `LLMClient`. Preserves the Planner's conditional routing and `workflow.py`'s wiring exactly as PLAN-005 built them. Keeps `articles` immutable.
 
-Reference: [`PROJECT_CONTEXT.md`](../../PROJECT_CONTEXT.md), [`CLAUDE.md`](../../CLAUDE.md), [`ADR 0001`](../ADR/0001-langgraph-execution-engine.md) (defines the Hybrid category this sprint finally builds), [`ADR 0003`](../ADR/0003-tool-architecture.md) and [`ADR 0004`](../ADR/0004-planner-responsibilities.md) (the ownership-and-validation discipline this sprint continues). TIMELINE-001 will produce its own ADR (Hybrid node design) as its deliverable.
+Reference: [`PROJECT_CONTEXT.md`](../../PROJECT_CONTEXT.md), [`CLAUDE.md`](../../CLAUDE.md), [`ADR 0001`](../ADR/0001-langgraph-execution-engine.md) (defines the Hybrid category this sprint finally builds), [`ADR 0003`](../ADR/0003-tool-architecture.md) and [`ADR 0004`](../ADR/0004-planner-responsibilities.md) (the ownership-and-validation discipline this sprint continues), [`ADR 0005 — Hybrid Node Design`](../ADR/0005-hybrid-node-design.md) (TIMELINE-001's deliverable).
 
 A ticket is only checked off once the implementation works, follows the layering/engineering principles in `CLAUDE.md`, and can be explained line-by-line (per the project's Definition of Done).
 
@@ -41,7 +41,7 @@ By the end of this sprint, you should be able to explain:
 
 ## Tickets
 
-- [ ] **TIMELINE-001 — Hybrid node design review**
+- [x] **TIMELINE-001 — Hybrid node design review**
   Before writing code: what makes a node Hybrid? Where does deterministic vs. LLM logic live within one? How is "LLM only where reasoning is genuinely required" enforced, not just claimed? Why must `articles` stay immutable, and how is that actually guaranteed in code? Deliverable: ADR 0005.
   *Depends on:* nothing.
 
